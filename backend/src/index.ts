@@ -2,6 +2,8 @@ import express, { type Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/error-handler.js';
+import claimsRouter from './routes/claims.js';
+import adminRouter from './routes/admin.js';
 
 dotenv.config();
 
@@ -18,7 +20,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// TODO: Mount claim and admin routes (Task 6-7)
+// Mount claim and admin routes
+app.use('/api/claims', claimsRouter);
+app.use('/api/admin', adminRouter);
 
 app.use(errorHandler);
 

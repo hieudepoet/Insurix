@@ -604,11 +604,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-010, S-016, S-005, S-006, S-007 |
 
 **Acceptance criteria:**
-- [ ] `POST /api/claims` — creates a Claim on-chain, locks escrow funds, triggers agent orchestration, returns claim ID
-- [ ] `GET /api/claims` — returns list of claims (from on-chain indexing or local cache)
-- [ ] `GET /api/claims/:id` — returns claim details + attestation status for each schema
-- [ ] `POST /api/claims/:id/settle` — calls `try_settle` on-chain, returns settlement result (settled/rejected + reason)
-- [ ] All routes return consistent JSON response format with appropriate HTTP status codes
+- [x] `POST /api/claims` — creates a Claim on-chain, locks escrow funds, triggers agent orchestration, returns claim ID
+- [x] `GET /api/claims` — returns list of claims (from on-chain indexing or local cache)
+- [x] `GET /api/claims/:id` — returns claim details + attestation status for each schema
+- [x] `POST /api/claims/:id/settle` — calls `try_settle` on-chain, returns settlement result (settled/rejected + reason)
+- [x] All routes return consistent JSON response format with appropriate HTTP status codes
 
 ---
 
@@ -688,12 +688,12 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-032, S-033 |
 
 **Acceptance criteria:**
-- [ ] Form fields: claim type (dropdown: flight-delay, weather), description, amount, location/date parameters
-- [ ] Wallet must be connected to submit (prompt to connect if not)
-- [ ] On submit: calls `POST /api/claims`, which creates the on-chain Claim + locks escrow + triggers agents
-- [ ] Loading state during transaction signing and submission
-- [ ] On success: redirects to the new claim's detail page
-- [ ] On error: displays user-friendly error message
+- [x] Form fields: claim type (dropdown: flight-delay, weather), description, amount, location/date parameters
+- [x] Wallet must be connected to submit (prompt to connect if not)
+- [x] On submit: calls `POST /api/claims`, which creates the on-chain Claim + locks escrow + triggers agents
+- [x] Loading state during transaction signing and submission
+- [x] On success: redirects to the new claim's detail page
+- [x] On error: displays user-friendly error message
 
 ---
 
@@ -705,12 +705,12 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-032, S-033 |
 
 **Acceptance criteria:**
-- [ ] Displays all claims for the connected wallet address
-- [ ] Each row shows: claim ID, type, amount, status (Pending/Settled/Rejected), attestation progress (e.g., 2/3), created date
-- [ ] Status badges with color coding (pending=yellow, settled=green, rejected=red)
-- [ ] Click a row to navigate to the claim detail page
-- [ ] Empty state when no claims exist
-- [ ] Auto-refresh via React Query polling
+- [x] Displays all claims for the connected wallet address
+- [x] Each row shows: claim ID, type, amount, status (Pending/Settled/Rejected), attestation progress (e.g., 2/3), created date
+- [x] Status badges with color coding (pending=yellow, settled=green, rejected=red)
+- [x] Click a row to navigate to the claim detail page
+- [x] Empty state when no claims exist
+- [x] Auto-refresh via React Query polling
 
 ---
 
@@ -722,11 +722,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-033, S-035 |
 
 **Acceptance criteria:**
-- [ ] Displays full claim details: ID, type, description, amount, policyholder, status, timestamps
-- [ ] Attestation status panel: shows each schema (IdentityVerified, ExternalDataVerified, FraudCheckPassed) with status indicator (pending, attested, revoked)
-- [ ] Polls attestation status every 3 seconds while claim is in "Pending" state
-- [ ] Visual progress indicator (e.g., 3-step checklist that fills in as attestations arrive)
-- [ ] Displays on-chain transaction links (Sui Explorer) for the claim and each attestation
+- [x] Displays full claim details: ID, type, description, amount, policyholder, status, timestamps
+- [x] Attestation status panel: shows each schema (IdentityVerified, ExternalDataVerified, FraudCheckPassed) with status indicator (pending, attested, revoked)
+- [x] Polls attestation status every 3 seconds while claim is in "Pending" state
+- [x] Visual progress indicator (e.g., 3-step checklist that fills in as attestations arrive)
+- [x] Displays on-chain transaction links (Sui Explorer) for the claim and each attestation
 
 ---
 
@@ -738,13 +738,13 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-036 |
 
 **Acceptance criteria:**
-- [ ] "Settle Claim" button visible on claim detail page when claim is in "Pending" state
-- [ ] Button enabled only when all 3 attestations are present (visual indicator shows readiness)
-- [ ] On click: calls `POST /api/claims/:id/settle`
-- [ ] Loading state during settlement transaction
-- [ ] On success: displays settlement result — "Settled" badge, payout amount, transaction link
-- [ ] On rejection: displays rejection reason (which attestation was missing or revoked)
-- [ ] Button hidden after settlement (settled or rejected)
+- [x] "Settle Claim" button visible on claim detail page when claim is in "Pending" state
+- [x] Button enabled only when all 3 attestations are present (visual indicator shows readiness)
+- [x] On click: calls `POST /api/claims/:id/settle`
+- [x] Loading state during settlement transaction
+- [x] On success: displays settlement result — "Settled" badge, payout amount, transaction link
+- [x] On rejection: displays rejection reason (which attestation was missing or revoked)
+- [x] Button hidden after settlement (settled or rejected)
 
 ---
 
@@ -774,11 +774,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-001, S-010, S-021 |
 
 **Acceptance criteria:**
-- [ ] `scripts/setup-localnet.ps1` — starts `sui start` (localnet), builds and publishes Move packages, funds test accounts, writes package IDs to `.env`
-- [ ] `scripts/setup-testnet.ps1` — same flow targeting testnet with faucet-funded accounts
-- [ ] Scripts are idempotent (safe to re-run)
-- [ ] Output clearly shows package IDs, object IDs, and funded addresses
-- [ ] README section in script headers explaining usage
+- [x] `scripts/setup-localnet.ps1` — starts `sui start` (localnet), builds and publishes Move packages, funds test accounts, writes package IDs to `.env`
+- [x] `scripts/setup-testnet.ps1` — same flow targeting testnet with faucet-funded accounts
+- [x] Scripts are idempotent (safe to re-run)
+- [x] Output clearly shows package IDs, object IDs, and funded addresses
+- [x] README section in script headers explaining usage
 
 ---
 
@@ -790,11 +790,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-010, S-017 |
 
 **Acceptance criteria:**
-- [ ] Vitest configured in the backend project
-- [ ] Integration tests for the Claims API: POST creates claim, GET returns claims, GET :id returns detail, settle endpoint works
-- [ ] Tests for the agent orchestrator: all agents run in parallel, results collected correctly
-- [ ] Mock Sui client for unit-level tests of attestation service
-- [ ] All tests pass with `npm test`
+- [x] Vitest configured in the backend project
+- [x] Integration tests for the Claims API: POST creates claim, GET returns claims, GET :id returns detail, settle endpoint works
+- [x] Tests for the agent orchestrator: all agents run in parallel, results collected correctly
+- [x] Mock Sui client for unit-level tests of attestation service
+- [x] All tests pass with `npm test`
 
 ---
 
@@ -812,10 +812,10 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-010, S-012, S-042 |
 
 **Acceptance criteria:**
-- [ ] `POST /api/admin/revoke` — revokes a specific attestation by claim ID and schema type
-- [ ] `GET /api/admin/stats` — returns aggregate stats: total claims, settled, rejected, pending, attestation counts
-- [ ] Routes are protected by admin API key authentication (S-042)
-- [ ] Returns meaningful error messages for invalid inputs
+- [x] `POST /api/admin/revoke` — revokes a specific attestation by claim ID and schema type
+- [x] `GET /api/admin/stats` — returns aggregate stats: total claims, settled, rejected, pending, attestation counts
+- [x] Routes are protected by admin API key authentication (S-042)
+- [x] Returns meaningful error messages for invalid inputs
 
 ---
 
@@ -923,10 +923,10 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-021, S-017, S-042 |
 
 **Acceptance criteria:**
-- [ ] Table view of all claims with sortable columns: ID, type, amount, status, attestation count, created date
-- [ ] Filter controls: by status (All/Pending/Settled/Rejected), by claim type, by date range
-- [ ] Pagination or infinite scroll
-- [ ] Requires admin API key authentication (S-042)
+- [x] Table view of all claims with sortable columns: ID, type, amount, status, attestation count, created date
+- [x] Filter controls: by status (All/Pending/Settled/Rejected), by claim type, by date range
+- [x] Pagination or infinite scroll
+- [x] Requires admin API key authentication (S-042)
 
 ---
 
@@ -938,10 +938,10 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-039, S-018 |
 
 **Acceptance criteria:**
-- [ ] Full claim detail view with all on-chain data displayed
-- [ ] Attestation list showing each attestation with: schema type, attester, timestamp, status (active/revoked)
-- [ ] Button to revoke individual attestations (calls admin revoke API)
-- [ ] Confirmation dialog before revocation
+- [x] Full claim detail view with all on-chain data displayed
+- [x] Attestation list showing each attestation with: schema type, attester, timestamp, status (active/revoked)
+- [x] Button to revoke individual attestations (calls admin revoke API)
+- [x] Confirmation dialog before revocation
 
 ---
 
@@ -953,11 +953,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-040, S-018 |
 
 **Acceptance criteria:**
-- [ ] Manual "Force Settle" action (admin override — calls `try_settle` regardless of attestation count, with audit log)
-- [ ] Manual "Reject" action with reason text field
-- [ ] Manual "Revoke All" action to revoke all attestations on a claim
-- [ ] All actions require confirmation dialog
-- [ ] Action results displayed with success/error feedback
+- [x] Manual "Force Settle" action (admin override — calls `try_settle` regardless of attestation count, with audit log)
+- [x] Manual "Reject" action with reason text field
+- [x] Manual "Revoke All" action to revoke all attestations on a claim
+- [x] All actions require confirmation dialog
+- [x] Action results displayed with success/error feedback
 
 ---
 
@@ -969,11 +969,11 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-019 |
 
 **Acceptance criteria:**
-- [ ] Admin pages prompt for API key entry (stored in session/localStorage)
-- [ ] API key sent as `Authorization: Bearer <key>` header on all admin API calls
-- [ ] Backend validates key against `ADMIN_API_KEY` env var
-- [ ] Invalid/expired key redirects to login prompt
-- [ ] Logout button clears stored key
+- [x] Admin pages prompt for API key entry (stored in session/localStorage)
+- [x] API key sent as `Authorization: Bearer <key>` header on all admin API calls
+- [x] Backend validates key against `ADMIN_API_KEY` env var
+- [x] Invalid/expired key redirects to login prompt
+- [x] Logout button clears stored key
 
 ---
 
@@ -987,10 +987,10 @@ These stories bridge multiple epics — they depend on deliverables from a diffe
 | **Dependencies** | S-017, S-034, S-037 |
 
 **Acceptance criteria:**
-- [ ] `scripts/demo-walkthrough.ps1` or shell script that runs the full demo flow end-to-end via CLI/curl
-- [ ] Steps: create claim → wait for agent attestations → check status → settle → verify payout
-- [ ] Output is presentable for a live demo (clear step labels, transaction links)
-- [ ] Includes a fallback mode if external APIs are unavailable (force-attest via admin override)
+- [x] `scripts/demo-walkthrough.ps1` or shell script that runs the full demo flow end-to-end via CLI/curl
+- [x] Steps: create claim → wait for agent attestations → check status → settle → verify payout
+- [x] Output is presentable for a live demo (clear step labels, transaction links)
+- [x] Includes a fallback mode if external APIs are unavailable (force-attest via admin override)
 
 ---
 

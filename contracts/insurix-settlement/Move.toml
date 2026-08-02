@@ -1,12 +1,7 @@
 [package]
 name = "insurix_settlement"
 edition = "2024"
-version = "0.1.0"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 attestations = { local = "../attestations/packages/attestations" }
 insurix_schemas = { local = "../insurix-schemas" }
-
-[addresses]
-insurix_settlement = "0x0"
