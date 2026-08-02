@@ -26,6 +26,7 @@ Thumbs.db
 # Sui
 build/
 Move.lock
+*.key
 
 # Logs
 *.log
