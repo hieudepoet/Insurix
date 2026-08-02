@@ -73,7 +73,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-32 px-6">
+    <section id="faq" className="py-20 sm:py-28 lg:py-32 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">
@@ -86,7 +86,7 @@ export default function FAQSection() {
         </div>
 
         {/* FAQ items */}
-        <div className="rounded-2xl bg-white/[0.02] border border-white/5 px-8">
+        <div className="rounded-2xl bg-white/[0.02] border border-white/5 px-4 sm:px-6 md:px-8">
           {faqs.map((faq, i) => (
             <FAQItem
               key={i}

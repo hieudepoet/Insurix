@@ -74,7 +74,7 @@ flowchart TB
 | Backend | Node.js, Express 4, TypeScript 5, `@mysten/sui` SDK, Axios, CORS, dotenv |
 | Frontend | Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS v4 |
 | 3D & Animation | Three.js, `@react-three/fiber`, `@react-three/drei`, GSAP, Framer Motion, Lenis |
-| Wallet | `@mysten/dapp-kit`, `@mysten/sui` v2 |
+| Wallet | Managed server-side in PoC mode (no user-facing wallet needed) |
 | AI Agents | TypeScript — mock KYC, real weather/flight APIs (OpenWeatherMap, AviationStack), rule-based fraud detection |
 | Testing | Vitest (backend), `sui move test` (contracts) |
 
@@ -104,7 +104,7 @@ insurix/
 │       │   ├── (app)/          # App shell with wallet provider + React Query
 │       │   ├── claims/         # Claim submission form, list, detail with attestation polling
 │       │   └── admin/          # Admin dashboard, claim detail, attestation management
-│       ├── components/         # WalletConnect, SmoothScroll
+│       ├── components/         # SmoothScroll, Toast, MobileLayout
 │       └── lib/                # api-client.ts, sui-client.ts
 ├── scripts/                    # PowerShell setup scripts
 │   ├── dev.ps1                 # Start everything (localnet + backend + frontend)
@@ -212,11 +212,13 @@ Admin routes require an `x-api-key` header matching `ADMIN_API_KEY`.
 > Full step-by-step guide: [docs/demo/walkthrough.md](docs/demo/walkthrough.md)
 
 1. Open **http://localhost:3000** — landing page with 3D animation and smooth scroll
-2. Click **Connect Wallet** — connect your Sui Wallet
-3. Navigate to **/claims** → click **New Claim** — create a flight-delay claim
-4. Watch AI agents verify in real-time — attestation cards update as each agent issues its on-chain attestation
-5. Click **Settle Claim** when all 3 attestations pass — escrow releases funds to your wallet
+2. Navigate to **/claims** — the app automatically creates a session (no wallet needed)
+3. Click **New Claim** — create a flight-delay claim and watch AI agents verify in real-time
+4. Attestation cards update as each agent issues its on-chain attestation under the hood
+5. Click **Settle Claim** when all 3 attestations pass — escrow releases funds automatically
 6. Visit **/admin** — admin panel with claim filters, attestation management, and platform stats (API key required)
+
+> **Note:** Blockchain attestation and settlement run under the hood in PoC mode. Users never need to manage a wallet or sign transactions directly.
 
 ---
 

@@ -9,6 +9,7 @@ export const claimIndex = new Map<string, {
   claimId: string;
   claimType: 'flight-delay' | 'weather';
   amount: number;
+  amountUsd: number;
   status: string;
   walletAddress: string;
   createdAt: number;
@@ -31,22 +32,24 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { walletAddress, claimType, description, amount, params } = req.body;
 
-    if (!walletAddress || !claimType || !amount) {
-      throw new AppError(400, 'Missing required fields: walletAddress, claimType, amount');
+    if (!claimType || !amount) {
+      throw new AppError(400, 'Missing required fields: claimType, amount');
     }
 
     const productType = claimTypeToProductType(claimType);
     const externalId = params?.flightNumber || params?.location || 'unknown';
 
-    const result = await createClaim(amount, productType, walletAddress, externalId);
+    // walletAddress is optional — service generates a mock address if empty
+    const result = await createClaim(amount, productType, walletAddress || '', externalId);
 
-    // Track in local index
+    // Track in local index (use the address from service, which may be generated)
     claimIndex.set(result.claimId, {
       claimId: result.claimId,
       claimType,
       amount,
+      amountUsd: amount,
       status: 'pending',
-      walletAddress,
+      walletAddress: result.customerAddress,
       createdAt: Date.now(),
     });
 
@@ -54,6 +57,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       claimId: result.claimId,
       txDigest: result.txDigest,
       status: 'pending',
+      walletAddress: result.customerAddress,
+      amountUsd: amount,
     });
   } catch (err) {
     next(err);
@@ -71,6 +76,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         claimId: c.claimId,
         claimType: c.claimType,
         amount: c.amount,
+        amountUsd: c.amountUsd,
         status: c.status,
         attestationProgress: {
           identity: false,
@@ -114,6 +120,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       claimId: localClaim.claimId,
       claimType: localClaim.claimType,
       amount: localClaim.amount,
+      amountUsd: localClaim.amountUsd,
       status: localClaim.status,
       attestationProgress,
       createdAt: localClaim.createdAt,

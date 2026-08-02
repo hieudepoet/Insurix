@@ -267,7 +267,7 @@ export default function AdminClaimDetailPage({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.4 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-2 gap-3"
       >
         <MetaCard label="Claim Type" value={claim.claimType.replace("-", " ")} capitalize />
         <MetaCard label="Status" value={claim.status} valueClass={statusColor(claim.status)} capitalize />
@@ -304,7 +304,7 @@ export default function AdminClaimDetailPage({
       </motion.div>
 
       {/* Attestation cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-3">
         {ATTESTATION_META.map((meta, i) => {
           const verified = claim.attestationProgress[meta.progressKey];
           const isRevoking = revoking === meta.type;
@@ -353,9 +353,9 @@ export default function AdminClaimDetailPage({
               <button
                 onClick={() => setConfirmType(meta.type)}
                 disabled={!verified || isRevoking}
-                className={`mt-4 w-full py-2 rounded-xl text-sm font-medium transition ${
+                className={`mt-4 w-full h-10 rounded-xl text-sm font-medium transition ${
                   verified
-                    ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
+                    ? "bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                     : "bg-white/5 border border-white/10 text-gray-600 cursor-not-allowed"
                 }`}
               >

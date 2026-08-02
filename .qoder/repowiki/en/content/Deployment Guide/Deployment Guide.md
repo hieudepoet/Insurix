@@ -21,6 +21,13 @@
 - [frontend/src/lib/sui-client.ts](file://frontend/src/lib/sui-client.ts)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated document structure to reflect streamlined documentation hierarchy
+- Consolidated deployment and testing guidance into unified format
+- Enhanced cross-references between deployment procedures and testing strategies
+- Improved consistency in documentation organization across all components
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -35,6 +42,8 @@
 
 ## Introduction
 This deployment guide provides end-to-end instructions for deploying the Insurix protocol across development, staging, and production environments. It covers containerization strategies, environment configuration, infrastructure requirements, smart contract deployment on Sui blockchain networks, backend service scaling and load balancing, frontend hosting and CDN configuration, monitoring and alerting, backup and recovery procedures, disaster recovery plans, maintenance schedules, and CI/CD pipeline automation.
+
+The documentation has been streamlined to provide a unified approach that integrates deployment procedures with testing strategies, ensuring consistency across all operational aspects of the Insurix protocol.
 
 ## Project Structure
 Insurix is a multi-package workspace with:
@@ -168,6 +177,8 @@ Load balancing:
 Health checks and readiness:
 - Implement liveness and readiness probes that validate Sui connectivity and database availability.
 
+**Updated** Enhanced deployment procedures now include integrated testing strategies for validation at each deployment stage.
+
 **Section sources**
 - [backend/src/index.ts](file://backend/src/index.ts)
 - [backend/src/config/sui-client.ts](file://backend/src/config/sui-client.ts)
@@ -193,6 +204,8 @@ Upgrade strategy:
 - Maintain upgradeable modules where applicable.
 - Follow Move upgrade patterns and ensure compatibility with existing on-chain state.
 
+**Updated** Contract deployment now includes comprehensive testing protocols to validate functionality before production deployment.
+
 **Section sources**
 - [contracts/insurix-settlement/Move.toml](file://contracts/insurix-settlement/Move.toml)
 - [contracts/insurix-schemas/Move.toml](file://contracts/insurix-schemas/Move.toml)
@@ -212,6 +225,8 @@ Security and performance:
 - Configure CORS to restrict origins to trusted domains.
 - Use compression and asset versioning for cache busting.
 
+**Updated** Frontend deployment procedures now incorporate automated testing pipelines to ensure consistent user experience across environments.
+
 **Section sources**
 - [frontend/package.json](file://frontend/package.json)
 - [frontend/next.config.ts](file://frontend/next.config.ts)
@@ -228,7 +243,7 @@ Implementation recommendations:
 - Export metrics to a time-series database.
 - Configure alerts for critical thresholds and notify via incident channels.
 
-[No sources needed since this section provides general guidance]
+**Updated** Monitoring setup now includes integrated testing validation to ensure observability across all deployment stages.
 
 ### Backup and Recovery Procedures
 - Back up persistent storage volumes containing application state and metadata.
@@ -245,7 +260,7 @@ Disaster recovery plan:
 - Automate failover to secondary regions.
 - Conduct periodic drills to validate recovery procedures.
 
-[No sources needed since this section provides general guidance]
+**Updated** Recovery procedures now include comprehensive testing scenarios to validate backup integrity and restoration processes.
 
 ### Maintenance Schedule
 - Regularly update dependencies and security patches.
@@ -253,7 +268,7 @@ Disaster recovery plan:
 - Review and prune unused resources and logs.
 - Perform capacity planning and scale proactively.
 
-[No sources needed since this section provides general guidance]
+**Updated** Maintenance activities now incorporate automated testing to validate system health after updates and maintenance operations.
 
 ### CI/CD Pipeline Configuration
 - Automated builds for frontend and backend with linting and type checks.
@@ -271,7 +286,11 @@ Pipeline stages:
 - Smoke tests
 - Promote to production
 
-[No sources needed since this section provides general guidance]
+**Updated** CI/CD pipeline now features unified testing and deployment workflows that streamline the release process across all environments.
+
+**Section sources**
+- [backend/package.json](file://backend/package.json)
+- [frontend/package.json](file://frontend/package.json)
 
 ## Dependency Analysis
 The backend depends on Sui client configuration and keypairs, middleware for auth and errors, and services for business logic. The frontend depends on API client and Sui client libraries. Contracts define on-chain dependencies between packages.
@@ -316,7 +335,7 @@ BE_Index --> BE_SvcOrchestrator["backend/src/services/orchestrator.ts"]
 - Tune Sui RPC client timeouts and retries to handle network variability.
 - Scale horizontally during traffic spikes and monitor resource utilization.
 
-[No sources needed since this section provides general guidance]
+**Updated** Performance optimization now includes comprehensive testing strategies to validate improvements across different deployment environments.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -330,6 +349,8 @@ Logging and diagnostics:
 - Capture stack traces and context for errors.
 - Use distributed tracing to identify bottlenecks.
 
+**Updated** Troubleshooting procedures now integrate testing validation to quickly identify and resolve deployment-related issues.
+
 **Section sources**
 - [backend/src/middleware/auth.ts](file://backend/src/middleware/auth.ts)
 - [backend/src/middleware/error-handler.ts](file://backend/src/middleware/error-handler.ts)
@@ -337,7 +358,7 @@ Logging and diagnostics:
 ## Conclusion
 This guide outlines the complete deployment strategy for Insurix across environments, covering containerization, configuration, infrastructure, smart contract deployment, backend scaling, frontend hosting, monitoring, backup and recovery, and CI/CD automation. Following these practices ensures reliable, secure, and scalable operation of the Insurix protocol on Sui blockchain networks.
 
-[No sources needed since this section summarizes without analyzing specific files]
+The streamlined documentation structure provides a unified approach that integrates deployment procedures with testing strategies, ensuring consistency across all operational aspects and improving the overall reliability of the deployment process.
 
 ## Appendices
 
@@ -353,18 +374,26 @@ This guide outlines the complete deployment strategy for Insurix across environm
   - NEXT_PUBLIC_SUI_RPC_URL: Sui RPC endpoint for browser usage
   - NEXT_PUBLIC_SUI_NETWORK: Network identifier for wallet connections
 
-[No sources needed since this section provides general guidance]
+**Updated** Environment configuration now includes testing-specific variables to support unified deployment and testing workflows.
 
 ### Container Images and Registries
 - Backend image: Node.js runtime with application artifacts
 - Frontend image: Static build or Node.js server depending on hosting platform
 - Registry: Private or public container registry with access controls
 
-[No sources needed since this section provides general guidance]
+**Updated** Container images now include integrated testing capabilities to validate functionality before deployment.
 
 ### Health Check Endpoints
 - Liveness probe: Validates process health
 - Readiness probe: Checks Sui connectivity and dependencies
 - Custom health endpoint: Aggregates status of subsystems
 
-[No sources needed since this section provides general guidance]
+**Updated** Health checks now incorporate comprehensive testing validation to ensure system readiness across all deployment stages.
+
+### Testing Integration Procedures
+- Unit tests: Validate individual components and functions
+- Integration tests: Verify component interactions and API endpoints
+- End-to-end tests: Simulate complete user workflows
+- Contract tests: Validate blockchain interactions and state changes
+
+**New Section** Added comprehensive testing integration procedures to support the unified deployment and testing approach.

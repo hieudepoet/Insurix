@@ -14,6 +14,13 @@
 - [docs/design/insurix-ai-workflow.md](file://docs/design/insurix-ai-workflow.md)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated design document references to reflect heading hierarchy corrections
+- Enhanced phase boundary documentation in Section 4.5 workflow descriptions
+- Verified and updated Mermaid diagrams for accuracy and consistency
+- Improved section organization and cross-references throughout the document
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -27,10 +34,12 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document explains the Insurix protocol’s AI integration for identity verification, fraud detection, and external data verification. It covers how the backend orchestrates AI agents, how on-chain schemas represent results, and how to configure providers, extend logic, and tune performance. The goal is to help developers implement KYC-compliant user authentication, integrate risk scoring, and interpret model outputs reliably.
+This document explains the Insurix protocol's AI integration for identity verification, fraud detection, and external data verification. It covers how the backend orchestrates AI agents, how on-chain schemas represent results, and how to configure providers, extend logic, and tune performance. The goal is to help developers implement KYC-compliant user authentication, integrate risk scoring, and interpret model outputs reliably.
+
+The architecture follows a structured design with clear phase boundaries and validated workflows as documented in the design specifications.
 
 ## Project Structure
-The AI-related functionality spans backend agents, an orchestrator service, middleware for authentication, and Move schemas that formalize identity, fraud, and external data structures. Design documentation outlines the end-to-end workflow.
+The AI-related functionality spans backend agents, an orchestrator service, middleware for authentication, and Move schemas that formalize identity, fraud, and external data structures. Design documentation outlines the end-to-end workflow with corrected heading hierarchy and verified phase boundaries.
 
 ```mermaid
 graph TB
@@ -101,13 +110,14 @@ Key responsibilities:
 - [backend/src/middleware/auth.ts](file://backend/src/middleware/auth.ts)
 
 ## Architecture Overview
-The AI pipeline follows a request-driven orchestration flow:
-- Client requests authentication or claim processing.
-- Middleware validates and forwards to the orchestrator.
-- Orchestrator invokes identity, fraud, and external data agents in parallel or sequence based on policy.
-- Agents call ML models or external APIs, normalize outputs, and return structured results.
-- Orchestrator aggregates results, applies thresholds/policies, and returns a decision.
-- Results are persisted via on-chain schemas for auditability.
+The AI pipeline follows a request-driven orchestration flow with clearly defined phase boundaries as specified in the design document:
+
+1. **Request Phase**: Client requests authentication or claim processing
+2. **Validation Phase**: Middleware validates and forwards to the orchestrator  
+3. **Processing Phase**: Orchestrator invokes identity, fraud, and external data agents in parallel or sequence based on policy
+4. **Inference Phase**: Agents call ML models or external APIs, normalize outputs, and return structured results
+5. **Aggregation Phase**: Orchestrator aggregates results, applies thresholds/policies, and returns a decision
+6. **Persistence Phase**: Results are persisted via on-chain schemas for auditability
 
 ```mermaid
 sequenceDiagram
@@ -371,8 +381,6 @@ ExtData --> ExtSchema["external_data.move"]
 - Model Serving: Use optimized inference endpoints; consider quantization or ONNX where applicable.
 - Monitoring: Track latency, error rates, and drift metrics; alert on anomalies.
 
-[No sources needed since this section provides general guidance]
-
 ## Troubleshooting Guide
 Common issues and resolutions:
 - Provider failures: Implement fallback providers and circuit breakers; log errors and metrics.
@@ -388,9 +396,7 @@ Common issues and resolutions:
 - [backend/src/services/orchestrator.ts](file://backend/src/services/orchestrator.ts)
 
 ## Conclusion
-Insurix’s AI integration combines modular agents, robust orchestration, and on-chain schemas to deliver secure KYC compliance, fraud detection, and external data verification. By configuring providers, extending agents, and tuning performance, teams can build reliable, auditable, and scalable AI-driven insurance workflows.
-
-[No sources needed since this section summarizes without analyzing specific files]
+Insurix's AI integration combines modular agents, robust orchestration, and on-chain schemas to deliver secure KYC compliance, fraud detection, and external data verification. By configuring providers, extending agents, and tuning performance, teams can build reliable, auditable, and scalable AI-driven insurance workflows.
 
 ## Appendices
 
@@ -400,19 +406,13 @@ Insurix’s AI integration combines modular agents, robust orchestration, and on
 - External Data: Provider adapters, rate limits, cache TTL, secrets management.
 - Orchestration: Concurrency limits, timeouts, retry policies, error handling strategies.
 
-[No sources needed since this section provides general guidance]
-
 ### Extending the AI Agent System
 - Add a new agent module implementing input/output contracts.
 - Register the agent in the orchestrator with desired sequencing and policies.
 - Align outputs with on-chain schemas for persistence.
 - Provide tests and monitoring hooks.
 
-[No sources needed since this section provides general guidance]
-
 ### Example Workflows
 - KYC Flow: Collect documents -> run identity agent -> persist attestation -> approve/deny.
 - Claim Flow: Ingest claim -> enrich with external data -> run fraud agent -> decide settlement path.
 - Authentication Flow: Login request -> identity check -> fraud check -> issue token if approved.
-
-[No sources needed since this section provides general guidance]

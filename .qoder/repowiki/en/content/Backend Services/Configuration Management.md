@@ -9,6 +9,13 @@
 - [tsconfig.json](file://backend/tsconfig.json)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated Keypair Management System section to reflect PoC environment configuration changes
+- Enhanced startup configuration documentation for PoC context
+- Added new troubleshooting guidance for PoC-specific startup blockers
+- Updated cryptographic keypair configuration examples for PoC deployments
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -19,13 +26,13 @@
 7. [Performance Considerations](#performance-considerations)
 8. [Troubleshooting Guide](#troubleshooting-guide)
 9. [Conclusion](#conclusion)
-9. [Appendices](#appendices)
+10. [Appendices](#appendices)
 
 ## Introduction
 
 The Insurix backend configuration system provides a robust foundation for managing blockchain network connections, cryptographic key management, and environment-specific settings. This system is designed to handle the complexities of Sui blockchain integration while maintaining security best practices and operational flexibility across different deployment environments.
 
-The configuration system addresses critical aspects of blockchain application development including network connectivity, transaction signing, secret management, and environment isolation. It follows TypeScript best practices and provides type-safe configuration management for production-grade applications.
+The configuration system addresses critical aspects of blockchain application development including network connectivity, transaction signing, secret management, and environment isolation. It follows TypeScript best practices and provides type-safe configuration management for production-grade applications. **Updated** Recent enhancements include improved PoC (Proof of Concept) environment support with optimized startup configurations and enhanced cryptographic keypair management for development and testing scenarios.
 
 ## Project Structure
 
@@ -46,6 +53,7 @@ B --> L[Connection Pooling]
 C --> M[Keypair Management]
 C --> N[Cryptographic Keys]
 C --> O[Transaction Signing]
+C --> P[PoC Environment Config]
 E --> B
 E --> C
 G --> P[Dependencies]
@@ -70,7 +78,7 @@ The configuration system consists of two primary components that work together t
 The Sui client configuration manages all aspects of blockchain network connectivity, including network selection, RPC endpoint management, and connection pooling strategies. This component ensures reliable communication with the Sui blockchain while optimizing resource usage through intelligent connection management.
 
 ### Keypair Management
-The keypair management system handles secure storage, retrieval, and utilization of cryptographic keys for transaction signing and authentication. It implements industry-standard security practices for private key protection and provides interfaces for safe cryptographic operations.
+The keypair management system handles secure storage, retrieval, and utilization of cryptographic keys for transaction signing and authentication. **Updated** The system now includes enhanced PoC environment support with optimized startup configurations and improved error handling for development and testing scenarios. It implements industry-standard security practices for private key protection and provides interfaces for safe cryptographic operations.
 
 **Section sources**
 - [sui-client.ts:1-150](file://backend/src/config/sui-client.ts#L1-L150)
@@ -97,11 +105,14 @@ class KeypairManager {
 +verifySignature(tx : Transaction, sig : Signature) boolean
 +exportPrivateKey() : string
 +importPrivateKey(key : string) : void
++pocEnvironment : boolean
++startupValidation() boolean
 }
 class EnvironmentConfig {
 +environment : string
 +isDevelopment : boolean
 +isProduction : boolean
++isPoC : boolean
 +getSecret(name : string) : string
 +validateRequiredVars() : void
 }
@@ -162,27 +173,35 @@ Config-->>App : processed result
 
 ### Keypair Management System
 
-The keypair management system provides secure handling of cryptographic keys used for transaction signing and authentication. It implements industry-standard security practices for private key protection and provides safe interfaces for cryptographic operations.
+The keypair management system provides secure handling of cryptographic keys used for transaction signing and authentication. **Updated** The system has been enhanced with PoC environment support and improved startup validation to address common startup blockers in proof-of-concept deployments.
 
 #### Secure Key Storage
-Private keys are stored securely using environment variables or secure vault services. The system never exposes private key material directly and provides controlled access through well-defined interfaces.
+Private keys are stored securely using environment variables or secure vault services. The system never exposes private key material directly and provides controlled access through well-defined interfaces. **Updated** Enhanced validation ensures proper key format and availability during application startup.
+
+#### PoC Environment Configuration
+The system now includes specialized configuration for Proof of Concept environments with relaxed security settings for development purposes while maintaining core security principles. This includes optimized key loading mechanisms and simplified configuration requirements for rapid prototyping.
 
 #### Transaction Signing Workflow
-The signing workflow includes input validation, signature generation, and error handling to ensure transaction integrity and security.
+The signing workflow includes input validation, signature generation, and error handling to ensure transaction integrity and security. **Updated** Enhanced error handling provides better diagnostics for startup failures and key loading issues.
 
 ```mermaid
 flowchart TD
-Start([Transaction Initiated]) --> ValidateInput["Validate Transaction Input"]
-ValidateInput --> LoadKeypair["Load Keypair from Secure Storage"]
-LoadKeypair --> CheckValid{"Keypair Valid?"}
-CheckValid --> |No| HandleError["Handle Key Loading Error"]
-CheckValid --> |Yes| SignTransaction["Sign Transaction"]
+Start([Application Startup]) --> CheckEnv["Check Environment Type"]
+CheckEnv --> |PoC| LoadPocKeys["Load PoC Keypairs"]
+CheckEnv --> |Dev| LoadDevKeys["Load Development Keypairs"]
+CheckEnv --> |Prod| LoadProdKeys["Load Production Keypairs"]
+LoadPocKeys --> ValidateKeys["Validate Key Format"]
+LoadDevKeys --> ValidateKeys
+LoadProdKeys --> ValidateKeys
+ValidateKeys --> KeyValid{"Keys Valid?"}
+KeyValid --> |No| HandleError["Handle Startup Error"]
+KeyValid --> |Yes| SignTransaction["Sign Transaction"]
 SignTransaction --> VerifySig["Verify Signature"]
 VerifySig --> SigValid{"Signature Valid?"}
 SigValid --> |No| HandleError
 SigValid --> |Yes| ReturnSig["Return Signed Transaction"]
-HandleError --> End([Error Handled])
-ReturnSig --> End
+HandleError --> End([Startup Failed])
+ReturnSig --> End([Startup Successful])
 ```
 
 **Diagram sources**
@@ -193,7 +212,7 @@ ReturnSig --> End
 
 ### Environment-Specific Configuration
 
-The configuration system supports multiple deployment environments with distinct settings for development, testing, and production scenarios. Each environment has specific network endpoints, logging levels, and security policies.
+The configuration system supports multiple deployment environments with distinct settings for development, testing, and production scenarios. **Updated** Enhanced PoC environment support provides optimized configurations for proof-of-concept deployments with simplified setup requirements.
 
 #### Development Environment
 Development configurations prioritize developer experience with relaxed security settings, verbose logging, and local network endpoints for rapid iteration.
@@ -203,6 +222,9 @@ Testing configurations include mock services, test networks, and automated testi
 
 #### Production Environment
 Production configurations enforce strict security policies, optimized performance settings, and monitoring capabilities for enterprise deployments.
+
+#### PoC Environment
+**New** PoC (Proof of Concept) environments provide streamlined configuration for demonstration and testing purposes with pre-configured keys and simplified network settings for rapid prototyping.
 
 **Section sources**
 - [index.ts:1-100](file://backend/src/index.ts#L1-L100)
@@ -222,11 +244,13 @@ C --> G[HTTP Client]
 C --> H[Connection Pool]
 D --> I[Crypto Library]
 D --> J[Secure Storage]
-E --> K[Environment Variables]
-E --> L[Config Validation]
-F --> M[Network Protocol]
-G --> N[HTTP Transport]
-H --> O[Connection Management]
+D --> K[PoC Config Module]
+E --> L[Environment Variables]
+E --> M[Config Validation]
+F --> N[Network Protocol]
+G --> O[HTTP Transport]
+H --> P[Connection Management]
+K --> Q[Preset Keys]
 ```
 
 **Diagram sources**
@@ -246,10 +270,13 @@ The configuration system is designed with performance optimization in mind, part
 Intelligent connection pooling reduces overhead by reusing existing connections and implementing proper connection lifecycle management. The pool size is configurable based on expected load patterns.
 
 ### Lazy Initialization
-Configuration objects are initialized lazily to minimize startup time and memory usage. Only required components are loaded based on runtime needs.
+Configuration objects are initialized lazily to minimize startup time and memory usage. Only required components are loaded based on runtime needs. **Updated** Enhanced lazy loading for PoC environments reduces startup time for development and testing scenarios.
 
 ### Caching Strategies
 Frequently accessed configuration values are cached to reduce repeated lookups and improve response times for high-frequency operations.
+
+### Startup Optimization
+**New** Optimized startup procedures for different environments ensure minimal initialization overhead while maintaining security requirements.
 
 ## Troubleshooting Guide
 
@@ -266,6 +293,15 @@ Common configuration issues and their resolutions:
 - Verify environment variable names match expected configuration
 - Check file permissions for key storage locations
 - Validate cryptographic library versions for compatibility
+- **Updated** For PoC environments, verify that preset keys are correctly configured and accessible
+
+### PoC Environment Startup Issues
+**New** Common PoC-specific issues and solutions:
+- Ensure PoC environment variables are properly set
+- Verify preset key files exist and have correct permissions
+- Check network connectivity to test endpoints
+- Validate configuration schema for PoC-specific settings
+- Review startup logs for key loading errors
 
 ### Environment Configuration Errors
 - Confirm all required environment variables are set
@@ -279,7 +315,7 @@ Common configuration issues and their resolutions:
 
 ## Conclusion
 
-The Insurix backend configuration system provides a robust, secure, and scalable foundation for blockchain integration. Its modular design, comprehensive error handling, and environment-specific configurations make it suitable for production deployments while maintaining developer-friendly features for development and testing environments.
+The Insurix backend configuration system provides a robust, secure, and scalable foundation for blockchain integration. **Updated** Recent enhancements include improved PoC environment support with optimized startup configurations and enhanced cryptographic keypair management for development and testing scenarios. Its modular design, comprehensive error handling, and environment-specific configurations make it suitable for production deployments while maintaining developer-friendly features for development and testing environments.
 
 The system's emphasis on security, particularly in keypair management and secrets handling, ensures that sensitive cryptographic material is protected according to industry best practices. The flexible configuration architecture allows for easy extension to support new networks, services, and deployment scenarios.
 
@@ -305,6 +341,15 @@ To add support for new blockchain networks or services:
 4. **Add Documentation**: Update configuration documentation with new options and examples
 5. **Test Thoroughly**: Include unit and integration tests for new configuration logic
 
+### PoC Environment Setup Guide
+**New** Step-by-step guide for setting up PoC environments:
+
+1. **Environment Variables**: Set required PoC environment variables
+2. **Key Generation**: Use preset keys or generate development keys
+3. **Network Configuration**: Configure test network endpoints
+4. **Validation**: Run startup validation to ensure proper configuration
+5. **Testing**: Verify functionality with sample transactions
+
 ### Security Best Practices
 
 For secure configuration management:
@@ -314,3 +359,4 @@ For secure configuration management:
 3. **Audit Access**: Log and monitor access to sensitive configuration data
 4. **Encrypt at Rest**: Encrypt configuration files containing sensitive information
 5. **Least Privilege**: Grant minimal necessary permissions for configuration access
+6. **Environment Isolation**: Maintain strict separation between development and production configurations

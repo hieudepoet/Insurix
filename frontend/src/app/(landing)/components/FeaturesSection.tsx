@@ -50,7 +50,7 @@ const cardVariants = {
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-32 px-6 bg-grid">
+    <section id="features" className="py-20 sm:py-28 lg:py-32 px-4 sm:px-6 bg-grid">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <motion.div
@@ -70,7 +70,7 @@ export default function FeaturesSection() {
         </motion.div>
 
         {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -79,7 +79,7 @@ export default function FeaturesSection() {
               whileInView="visible"
               viewport={{ once: true }}
               variants={cardVariants}
-              className="group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-primary/30 hover:bg-white/[0.04] transition-all duration-300"
+              className="group p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-primary/30 hover:bg-white/[0.04] transition-all duration-300"
             >
               <div className="text-4xl mb-4">{feature.icon}</div>
               <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-gradient transition-all">

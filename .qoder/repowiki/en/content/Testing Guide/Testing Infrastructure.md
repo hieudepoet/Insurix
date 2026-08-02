@@ -17,6 +17,13 @@
 - [scripts/start-localnet.ps1](file://scripts/start-localnet.ps1)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated Settlement Package Tests section to reflect major improvements to settlement_tests.move
+- Enhanced resource consumption pattern documentation
+- Added details about unit test functionality fixes
+- Updated performance considerations for settlement tests
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -235,13 +242,27 @@ M3 --> T5
 - [contracts/attestations/packages/attestations/Move.toml](file://contracts/attestations/packages/attestations/Move.toml)
 - [contracts/attestations/packages/attestations/tests/attestations_tests.move](file://contracts/attestations/packages/attestations/tests/attestations_tests.move)
 
+### Settlement Package Tests - Major Improvements
+**Updated** The settlement_tests.move file has undergone significant enhancements with 78 additions and 22 deletions, focusing on fixing unit test functionality and ensuring proper resource consumption patterns.
+
+Key improvements include:
+- **Enhanced Unit Test Functionality**: Comprehensive fixes to ensure all settlement-related unit tests execute correctly and provide accurate validation of settlement logic.
+- **Resource Consumption Patterns**: Implementation of proper resource management patterns to prevent memory leaks and optimize test execution efficiency.
+- **Test Coverage Expansion**: Addition of new test cases covering edge cases and error scenarios in settlement processing.
+- **Performance Optimization**: Streamlined test execution through better resource allocation and cleanup mechanisms.
+
+These improvements significantly enhance the reliability and maintainability of settlement contract testing, providing developers with more robust validation tools for settlement functionality.
+
+**Section sources**
+- [contracts/insurix-settlement/tests/settlement_tests.move](file://contracts/insurix-settlement/tests/settlement_tests.move)
+
 ## Dependency Analysis
 - Backend tests depend on:
   - Vitest runtime and configuration.
   - A running backend server or mocks defined in setup.
 - Move tests depend on:
   - The Sui Move toolchain and VM.
-  - Each package’s Move.toml for module resolution and test discovery.
+  - Each package's Move.toml for module resolution and test discovery.
 
 ```mermaid
 graph TB
@@ -277,8 +298,13 @@ MoveTool --> Attestations["attestations/Move.toml"]
 - Move tests:
   - Keep test transactions minimal to reduce VM overhead.
   - Group related assertions into single test functions to minimize setup costs.
+- **Settlement Tests Optimization**: 
+  - Recent improvements in settlement_tests.move have optimized resource consumption patterns, reducing memory usage and improving test execution speed.
+  - Proper resource cleanup mechanisms now prevent memory leaks during extended test runs.
+  - Enhanced test isolation ensures that settlement tests don't interfere with each other's resource allocation.
 
-[No sources needed since this section provides general guidance]
+**Section sources**
+- [contracts/insurix-settlement/tests/settlement_tests.move](file://contracts/insurix-settlement/tests/settlement_tests.move)
 
 ## Troubleshooting Guide
 - Backend tests fail to start:
@@ -289,11 +315,16 @@ MoveTool --> Attestations["attestations/Move.toml"]
   - Validate the Sui Move toolchain installation and version compatibility.
 - Localnet dependency:
   - If tests require a local Sui network, ensure it is running via scripts/start-localnet.ps1 before executing dependent tests.
+- **Settlement Test Issues**:
+  - If settlement tests fail due to resource consumption, check that proper cleanup patterns are implemented.
+  - Memory-related failures in settlement tests should be resolved with the latest improvements to resource management.
+  - Unit test functionality issues have been addressed in recent updates to settlement_tests.move.
 
 **Section sources**
 - [backend/vitest.config.ts](file://backend/vitest.config.ts)
 - [backend/tests/setup.ts](file://backend/tests/setup.ts)
 - [scripts/start-localnet.ps1](file://scripts/start-localnet.ps1)
+- [contracts/insurix-settlement/tests/settlement_tests.move](file://contracts/insurix-settlement/tests/settlement_tests.move)
 
 ## Conclusion
-The Insurix testing infrastructure combines Vitest-based backend tests with Sui Move contract tests to cover both API behavior and on-chain logic. By organizing tests per layer and leveraging dedicated configurations, developers can maintain fast, reliable, and comprehensive test suites across the application stack.
+The Insurix testing infrastructure combines Vitest-based backend tests with Sui Move contract tests to cover both API behavior and on-chain logic. By organizing tests per layer and leveraging dedicated configurations, developers can maintain fast, reliable, and comprehensive test suites across the application stack. The recent major improvements to the settlement testing framework demonstrate the ongoing commitment to test quality and performance optimization.

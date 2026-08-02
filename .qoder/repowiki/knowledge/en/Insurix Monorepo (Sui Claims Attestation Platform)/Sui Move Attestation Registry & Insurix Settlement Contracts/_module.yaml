@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: contracts
+title: Sui Move Attestation Registry & Insurix Settlement Contracts
+scope:
+    - contracts/
+source_files: []
+depends_on: []
+related_to:
+    - path: backend
+    - path: frontend
+    - path: scripts

@@ -49,6 +49,8 @@ describe("POST /api/claims", () => {
     expect(res.body).toHaveProperty("claimId");
     expect(res.body).toHaveProperty("txDigest");
     expect(res.body).toHaveProperty("status", "pending");
+    expect(res.body).toHaveProperty("walletAddress", "0xTEST");
+    expect(res.body).toHaveProperty("amountUsd", 500000000);
     expect(typeof res.body.claimId).toBe("string");
   });
 
@@ -59,6 +61,23 @@ describe("POST /api/claims", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty("error");
+  });
+
+  it("should create a claim without walletAddress (mobile PoC) and generate one", async () => {
+    const res = await request
+      .post("/api/claims")
+      .send({
+        claimType: "flight-delay",
+        amount: 100,
+        params: { flightNumber: "MOB01" },
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty("claimId");
+    expect(res.body).toHaveProperty("walletAddress");
+    expect(res.body).toHaveProperty("amountUsd", 100);
+    // Generated address should be a valid Sui address (0x + 64 hex chars)
+    expect(res.body.walletAddress).toMatch(/^0x[0-9a-f]{64}$/);
   });
 });
 
@@ -74,6 +93,7 @@ describe("GET /api/claims", () => {
       expect(claim).toHaveProperty("claimId");
       expect(claim).toHaveProperty("claimType");
       expect(claim).toHaveProperty("amount");
+      expect(claim).toHaveProperty("amountUsd");
       expect(claim).toHaveProperty("status");
       expect(claim).toHaveProperty("attestationProgress");
     }
@@ -112,6 +132,7 @@ describe("GET /api/claims/:id", () => {
     expect(res.body).toHaveProperty("claimId", claimId);
     expect(res.body).toHaveProperty("claimType", "weather");
     expect(res.body).toHaveProperty("amount", 200000000);
+    expect(res.body).toHaveProperty("amountUsd", 200000000);
     expect(res.body).toHaveProperty("status");
     expect(res.body).toHaveProperty("attestationProgress");
     expect(res.body.attestationProgress).toHaveProperty("identity");

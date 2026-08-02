@@ -1,13 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useMutation } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { claimsApi, type ClaimType } from '@/lib/api-client';
-import { WalletConnect } from '@/components/WalletConnect';
 
 interface FormState {
   claimType: ClaimType;
@@ -30,20 +27,18 @@ const INITIAL: FormState = {
 };
 
 const inputClass =
-  'w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400/40 transition';
-const labelClass = 'block text-sm font-medium text-gray-300 mb-2';
+  'w-full h-12 rounded-xl bg-white/5 border border-white/10 px-4 text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400/40 transition';
+const labelClass = 'block text-sm font-medium text-white/60 mb-2';
 
 export default function NewClaimPage() {
-  const account = useCurrentAccount();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL);
 
   const mutation = useMutation({
     mutationFn: async (state: FormState) => {
-      if (!account) throw new Error('Wallet not connected');
       const amount = Number(state.amount);
       if (!Number.isFinite(amount) || amount <= 0) {
-        throw new Error('Please enter a valid claim amount in SUI.');
+        throw new Error('Please enter a valid claim amount in USD.');
       }
       const params: Record<string, string | number> = {};
       if (state.claimType === 'flight-delay') {
@@ -63,7 +58,6 @@ export default function NewClaimPage() {
       if (!state.description.trim()) throw new Error('A short description is required.');
 
       return claimsApi.createClaim({
-        walletAddress: account.address,
         claimType: state.claimType,
         description: state.description.trim(),
         amount,
@@ -83,91 +77,100 @@ export default function NewClaimPage() {
     mutation.mutate(form);
   };
 
-  // Not connected → prompt.
-  if (!account) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center text-center py-24"
-      >
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
-          <svg className="w-8 h-8 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="2" />
-            <path d="M2 10h20" />
-          </svg>
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Connect your wallet</h2>
-        <p className="text-gray-400 mb-8 max-w-sm">
-          You need to connect a Sui wallet before submitting a claim on-chain.
-        </p>
-        <div className="[&_button]:!bg-white/5 [&_button]:!border-white/10">
-          <WalletConnect />
-        </div>
-      </motion.div>
-    );
-  }
-
   const isFlight = form.claimType === 'flight-delay';
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Back link */}
-      <Link href="/claims" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-6">
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7" />
-        </svg>
-        Back to claims
-      </Link>
+    <div className="flex flex-col min-h-[calc(100vh-3.5rem-4rem)]">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => router.push('/claims')}
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition"
+          aria-label="Go back"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-xl font-bold">New Claim</h1>
+      </div>
 
-      <motion.div
+      <motion.form
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-8"
+        onSubmit={onSubmit}
+        className="flex flex-col gap-5 flex-1"
       >
-        <h1 className="text-2xl font-bold mb-1">Submit a Claim</h1>
-        <p className="text-gray-400 text-sm mb-8">
-          File a parametric insurance claim. AI agents will verify it on-chain via Sui attestations.
-        </p>
-
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Claim type */}
-          <div>
-            <label className={labelClass}>Claim type</label>
-            <div className="grid grid-cols-2 gap-3">
-              {(['flight-delay', 'weather'] as ClaimType[]).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => update('claimType', t)}
-                  className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
-                    form.claimType === t
-                      ? 'border-cyan-400/50 bg-cyan-400/10 text-white'
-                      : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
-                  }`}
-                >
-                  {t === 'flight-delay' ? (
-                    <svg className="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10.5 13.5 3 17v-2.2l7.5-3.8V5a1.5 1.5 0 1 1 3 0v6l7.5 3.8V17l-7.5-3.5" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 14a4 4 0 0 0 .5-7.97 6 6 0 0 0-11.32 1.2A4.5 4.5 0 0 0 6 14" />
-                      <path d="M8 19v2M12 17v4M16 19v2" />
-                    </svg>
-                  )}
-                  <span className="text-sm font-medium">
-                    {t === 'flight-delay' ? 'Flight Delay' : 'Weather (Rainfall)'}
-                  </span>
-                </button>
-              ))}
-            </div>
+        {/* Type segmented control */}
+        <div>
+          <label className={labelClass}>Claim type</label>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { value: 'flight-delay' as ClaimType, icon: '✈️', label: 'Flight Delay' },
+              { value: 'weather' as ClaimType, icon: '🌧️', label: 'Weather' },
+            ]).map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => update('claimType', t.value)}
+                className={`flex items-center justify-center gap-2 h-12 rounded-xl border text-sm font-medium transition-all ${
+                  form.claimType === t.value
+                    ? 'border-cyan-400/60 bg-cyan-400/10 text-white'
+                    : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-lg">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Conditional fields */}
+        {/* Description */}
+        <div>
+          <label htmlFor="description" className={labelClass}>Description</label>
+          <textarea
+            id="description"
+            rows={3}
+            className={`${inputClass} h-auto py-3 resize-none`}
+            placeholder="Describe what happened and why this claim applies…"
+            value={form.description}
+            onChange={(e) => update('description', e.target.value)}
+            disabled={mutation.isPending}
+          />
+        </div>
+
+        {/* Amount */}
+        <div>
+          <label htmlFor="amount" className={labelClass}>Claim amount (USD)</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-base font-semibold">$</span>
+            <input
+              id="amount"
+              type="number"
+              min="0"
+              step="0.01"
+              className={`${inputClass} pl-8 text-2xl font-bold`}
+              placeholder="0.00"
+              value={form.amount}
+              onChange={(e) => update('amount', e.target.value)}
+              disabled={mutation.isPending}
+            />
+          </div>
+        </div>
+
+        {/* Conditional fields */}
+        <AnimatePresence mode="wait">
           {isFlight ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.div
+              key="flight"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden space-y-4"
+            >
               <div>
                 <label htmlFor="flightNumber" className={labelClass}>Flight number</label>
                 <input
@@ -190,9 +193,16 @@ export default function NewClaimPage() {
                   disabled={mutation.isPending}
                 />
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.div
+              key="weather"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden space-y-4"
+            >
               <div>
                 <label htmlFor="location" className={labelClass}>Location</label>
                 <input
@@ -218,73 +228,44 @@ export default function NewClaimPage() {
                   disabled={mutation.isPending}
                 />
               </div>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Amount */}
-          <div>
-            <label htmlFor="amount" className={labelClass}>Claim amount (SUI)</label>
-            <input
-              id="amount"
-              type="number"
-              min="0"
-              step="0.0001"
-              className={inputClass}
-              placeholder="e.g. 5"
-              value={form.amount}
-              onChange={(e) => update('amount', e.target.value)}
-              disabled={mutation.isPending}
-            />
-          </div>
+        {/* Error banner */}
+        {mutation.isError && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-300"
+          >
+            {mutation.error instanceof Error ? mutation.error.message : 'Something went wrong.'}
+          </motion.div>
+        )}
 
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className={labelClass}>Description</label>
-            <textarea
-              id="description"
-              rows={4}
-              className={`${inputClass} resize-none`}
-              placeholder="Describe what happened and why this claim applies…"
-              value={form.description}
-              onChange={(e) => update('description', e.target.value)}
-              disabled={mutation.isPending}
-            />
-          </div>
+        {/* Spacer pushes button to bottom */}
+        <div className="flex-1" />
 
-          {/* Error */}
-          {mutation.isError && (
-            <div className="rounded-xl bg-red-500/5 border border-red-500/20 px-4 py-3 text-sm text-red-300">
-              {mutation.error instanceof Error ? mutation.error.message : 'Something went wrong.'}
-            </div>
-          )}
-
-          {/* Submit */}
-          <div className="flex items-center justify-end gap-4 pt-2">
-            <Link
-              href="/claims"
-              className="px-5 py-3 rounded-full border border-white/15 text-gray-300 hover:bg-white/5 transition-colors text-sm font-medium"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-accent text-white font-semibold text-sm hover:opacity-90 transition-opacity glow disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {mutation.isPending ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  Creating claim on-chain…
-                </>
-              ) : (
-                'Submit Claim'
-              )}
-            </button>
-          </div>
-        </form>
-      </motion.div>
+        {/* Submit button — sticky at bottom */}
+        <div className="sticky bottom-4 pt-4">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-semibold text-base hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {mutation.isPending ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                Processing…
+              </>
+            ) : (
+              'Submit Claim'
+            )}
+          </button>
+        </div>
+      </motion.form>
     </div>
   );
 }

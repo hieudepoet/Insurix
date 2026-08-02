@@ -74,7 +74,7 @@ router.get('/stats', requireAdmin, async (req: Request, res: Response, next: Nex
       pendingClaims: claims.filter(c => c.status === 'pending' || c.status === 'attesting').length,
       settledClaims: claims.filter(c => c.status === 'settled').length,
       rejectedClaims: claims.filter(c => c.status === 'rejected' || c.status === 'failed').length,
-      totalAmount: claims.reduce((sum, c) => sum + c.amount, 0),
+      totalAmount: claims.reduce((sum, c) => sum + (c.amountUsd ?? c.amount), 0),
     };
 
     res.json(stats);

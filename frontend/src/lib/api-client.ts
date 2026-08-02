@@ -32,7 +32,6 @@ export interface ClaimDetail {
 }
 
 export interface CreateClaimParams {
-  walletAddress: string;
   claimType: ClaimType;
   description: string;
   amount: number;
@@ -96,11 +95,11 @@ export interface AdminClaimDetail {
 // ─── Claims API (matches backend contract) ──────────────────────────────
 
 export const claimsApi = {
-  async getClaims(walletAddress: string): Promise<ClaimListItem[]> {
-    const res = await fetch(
-      `${BACKEND_URL}/api/claims?wallet=${encodeURIComponent(walletAddress)}`,
-      { cache: 'no-store' },
-    );
+  async getClaims(): Promise<ClaimListItem[]> {
+    // PoC: backend returns all claims; no wallet filter needed.
+    const res = await fetch(`${BACKEND_URL}/api/claims`, {
+      cache: 'no-store',
+    });
     if (!res.ok) throw new Error(`Failed to load claims (${res.status})`);
     return (await res.json()) as ClaimListItem[];
   },
@@ -187,6 +186,11 @@ export function truncateId(id: string, head = 6, tail = 4): string {
 export function formatSui(amount: number): string {
   const n = Number(amount) || 0;
   return `${n.toLocaleString(undefined, { maximumFractionDigits: 4 })} SUI`;
+}
+
+export function formatUsd(amount: number): string {
+  const n = Number(amount) || 0;
+  return `$${n.toFixed(2)}`;
 }
 
 export function formatDate(ts?: number): string {

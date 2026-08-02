@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/5 py-12 px-6">
+    <footer className="border-t border-white/5 py-10 sm:py-12 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex flex-col items-center text-center gap-6 md:flex-row md:items-center md:justify-between md:text-left md:gap-8">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
@@ -16,7 +16,7 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-8">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
             <Link href="/about" className="text-sm text-gray-400 hover:text-white transition-colors">
               About
             </Link>
@@ -46,8 +46,8 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-8 border-t border-white/5 text-center">
-          <p className="text-sm text-gray-500">
+        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+          <p className="text-xs sm:text-sm text-gray-500">
             © {new Date().getFullYear()} Insurix. All rights reserved.
           </p>
         </div>

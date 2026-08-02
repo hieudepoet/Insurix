@@ -27,6 +27,13 @@
   scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
 }
 
+/* Prevent iOS input zoom */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
@@ -36,6 +43,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: none;
+}
+
+/* Mobile touch targets */
+button, a, input, select, textarea {
+  min-height: 44px;
 }
 
 /* Gradient text utility */
@@ -57,4 +72,44 @@ body {
     linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
+}
+
+/* Shimmer loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Toast animation */
+@keyframes toast-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.toast-enter {
+  animation: toast-in 0.3s ease-out;
+}
+
+/* Hide scrollbar but keep scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

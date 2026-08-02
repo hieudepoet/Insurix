@@ -24,3 +24,8 @@ export function getExternalDataAgentKeypair(): Ed25519Keypair {
 export function getFraudAgentKeypair(): Ed25519Keypair {
   return loadAgentKeypair('FRAUD_AGENT_KEY', 'Fraud Agent');
 }
+
+// Holds SettlementAdminCap — signs try_settle / reject_claim transactions.
+export function getSettlementAdminKeypair(): Ed25519Keypair {
+  return loadAgentKeypair('SETTLEMENT_ADMIN_KEY', 'Settlement Admin');
+}

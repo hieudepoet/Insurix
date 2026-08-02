@@ -20,7 +20,7 @@ export default function DemoSection() {
   }, []);
 
   return (
-    <section id="demo" className="py-32 px-6">
+    <section id="demo" className="py-20 sm:py-28 lg:py-32 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">

@@ -20,4 +20,6 @@ export const CONTRACTS = {
   IDENTITY_VERIFIER_CAP_ID: process.env.IDENTITY_VERIFIER_CAP_ID || '',
   EXTERNAL_DATA_VERIFIER_CAP_ID: process.env.EXTERNAL_DATA_VERIFIER_CAP_ID || '',
   FRAUD_CHECKER_CAP_ID: process.env.FRAUD_CHECKER_CAP_ID || '',
+  // Owned by the settlement-admin keypair (see keypairs.ts::getSettlementAdminKeypair).
+  SETTLEMENT_ADMIN_CAP_ID: process.env.SETTLEMENT_ADMIN_CAP_ID || '',
 };

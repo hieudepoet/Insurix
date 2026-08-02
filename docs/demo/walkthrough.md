@@ -9,7 +9,6 @@
 - [Sui CLI](https://docs.sui.io/guides/developer/getting-started/sui-install) installed and on your `PATH`
 - [Node.js](https://nodejs.org/) v20+ installed
 - [pnpm](https://pnpm.io/) v9+ installed (`npm install -g pnpm`)
-- [Sui Wallet](https://suiwallet.com/) browser extension installed (for full wallet flow)
 - API keys for external data (optional — the system has fallback/mock modes):
   - [OpenWeatherMap](https://openweathermap.org/api) (weather claims)
   - [AviationStack](https://aviationstack.com/) (flight claims)
@@ -56,23 +55,21 @@ Scroll through the page to see each section animate into view.
 
 ---
 
-## 3. Connect Wallet
+## 3. Open the App — No Wallet Needed
 
-1. Click the **Connect Wallet** button in the header.
-2. Select **Sui Wallet** (or **Ethos Wallet**) from the dapp-kit modal.
-3. Approve the connection request in your wallet extension.
+Navigate to **http://localhost:3000/claims**.
 
-![Wallet Connected](screenshots/wallet-connected.png)
+The app automatically creates a session for you — no wallet needed. In PoC mode, blockchain attestation and smart contract execution happen **under the hood**, so you can focus on the user experience.
 
-Your wallet address will appear in the header once connected.
+![Claims List](screenshots/claims-list-mobile.png)
 
-> **For demo purposes:** You can also interact without a wallet by using the seed script to create claims via API. See [Step 4](#4-create-a-claim-flight-delay) below.
+> **How it works:** The backend manages the on-chain identity and keypairs. Users interact with a clean, mobile-first interface while the Sui blockchain runs transparently in the background.
 
 ---
 
 ## 4. Create a Claim (Flight Delay)
 
-Navigate to **http://localhost:3000/claims** and click **New Claim**, or seed a demo claim via API:
+Click **New Claim** in the bottom navigation bar, or seed a demo claim via API:
 
 ```powershell
 .\scripts\seed-demo.ps1
@@ -84,9 +81,9 @@ This creates a flight-delay claim with demo parameters:
 |------------|------------------------------|
 | Flight     | VN123                        |
 | Delay      | 3 hours                      |
-| Amount     | 1 SUI (1,000,000,000 MIST)   |
+| Amount     | $500 USD                     |
 
-![Claim Created](screenshots/claim-created.png)
+![Claim Created](screenshots/claim-created-mobile.png)
 
 You should see the claim appear in the list with status **"pending"** and an attestation progress indicator showing **0/3**.
 
@@ -98,15 +95,15 @@ After creating a claim, the backend orchestrator launches three AI agents in par
 
 | Agent          | Schema                  | What it does                                            |
 |----------------|-------------------------|---------------------------------------------------------|
-| Identity       | `IdentityVerified`      | Verifies the claimant's wallet identity (mock KYC)      |
+| Identity       | `IdentityVerified`      | Verifies the claimant's identity (mock KYC)             |
 | External Data  | `ExternalDataVerified`   | Checks flight status via AviationStack API              |
 | Fraud Check    | `FraudCheckPassed`       | Runs rule-based anomaly detection on claim parameters   |
 
 Each agent holds a typed `Permit<T>` that authorizes it to issue exactly one attestation type. On success, the agent calls `attest()` on-chain, issuing a typed `Attestation<T>` into the Claim's active box.
 
-![Attestations Progress](screenshots/attestations-progress.png)
+![Attestations Progress](screenshots/attestations-progress-mobile.png)
 
-Refresh the claim detail page (or wait for auto-polling) to see attestation badges light up:
+The claim detail page auto-polls and attestation cards light up as each agent finishes:
 
 - Identity Verified -> checkmark
 - External Data Verified -> checkmark
@@ -127,9 +124,9 @@ $claimId = "<CLAIM_ID_FROM_STEP_4>"
 Invoke-RestMethod -Uri "http://localhost:3001/api/claims/$claimId/settle" -Method Post
 ```
 
-![Settle Claim](screenshots/settle-claim.png)
+![Settle Claim](screenshots/settle-claim-mobile.png)
 
-The settlement smart contract (`try_settle`) reads the Claim's active box, verifies all 3 required attestations are present and none revoked, then calls `release_funds` on the linked Escrow.
+The settlement smart contract (`try_settle`) reads the Claim's active box, verifies all 3 required attestations are present and none revoked, then calls `release_funds` on the linked Escrow. All of this happens under the hood — the user simply sees their claim status change to "settled" with the payout amount displayed.
 
 ---
 
@@ -137,9 +134,9 @@ The settlement smart contract (`try_settle`) reads the Claim's active box, verif
 
 After settlement, the claim status updates to **"settled"**:
 
-![Settlement Result](screenshots/settlement-result.png)
+![Settlement Result](screenshots/settlement-result-mobile.png)
 
-- The escrowed SUI is released to the claimant's wallet
+- The escrowed funds are released to the claimant
 - A transaction digest is recorded on-chain (viewable on Sui Explorer)
 - The claim detail page shows the settlement confirmation with payout amount and tx link
 
@@ -149,7 +146,7 @@ After settlement, the claim status updates to **"settled"**:
 
 Navigate to **http://localhost:3000/admin**.
 
-![Admin Panel](screenshots/admin-panel.png)
+![Admin Panel](screenshots/admin-panel-mobile.png)
 
 Enter the admin API key (from your `.env` file's `ADMIN_API_KEY`) to access:
 
@@ -196,6 +193,24 @@ After revocation, re-attempting `try_settle` on that claim will fail with a reje
 5. Frontend polls attestation status until all 3 are present
 6. User clicks "Settle" -> backend calls `try_settle()` -> escrow releases funds
 7. Frontend displays settlement result with Sui Explorer tx link
+
+> **Note:** Blockchain attestation and settlement run under the hood in PoC mode. Users never need to manage a wallet or sign transactions directly.
+
+---
+
+## Technical Highlights
+
+### What Runs Behind the Scenes
+
+1. **3 AI Agents** — Identity verification (mock KYC), external data validation (real weather/flight APIs), and fraud detection (rule-based anomaly detection) run in parallel via `Promise.allSettled`, with per-agent timeouts and error isolation.
+
+2. **Typed Attestation Framework** — Each agent issues a typed `Attestation<T>` via [`MystenLabs/attestations`](https://github.com/MystenLabs/attestations), with `Permit<T>` binding "who can attest what" at compile time. This is a Move-level capability, not a generic data field.
+
+3. **Smart Contract Settlement** — The `try_settle` Move function reads the Claim's active box on-chain, verifies 3-of-3 attestations with no revocations, and releases escrowed funds automatically. No off-chain oracle or centralized server makes the payout decision.
+
+4. **Revocable Credentials** — Admins can revoke attestations on-chain via `revoke()`, and `try_settle` correctly rejects claims with revoked attestations — demonstrating the full lifecycle: attest → revoke → reject.
+
+5. **End-to-End Auditability** — Every attestation, revocation, and settlement is visible on Sui Explorer. No black boxes.
 
 ---
 
@@ -256,12 +271,6 @@ Get-Process sui -ErrorAction SilentlyContinue | Stop-Process -Force
 - Reset localnet state: `sui genesis` to regenerate the genesis configuration
 - Ensure Sui CLI is up to date: `sui --version`
 
-### Wallet connection fails
-
-- Ensure the Sui Wallet extension is installed and enabled
-- Check that the wallet is set to the same network as your backend (localnet/testnet)
-- Try disconnecting and reconnecting the wallet
-
 ---
 
 ## What to Show Judges
@@ -283,7 +292,7 @@ Get-Process sui -ErrorAction SilentlyContinue | Stop-Process -Force
 ### Suggested Demo Script (3 minutes)
 
 1. **30s** — Show the landing page, scroll through sections, mention the architecture (3 agents + attestation + settlement)
-2. **30s** — Connect wallet, navigate to /claims, create a flight-delay claim (or use seed script)
+2. **30s** — Navigate to /claims, create a flight-delay claim (or use seed script) — note that no wallet is needed
 3. **60s** — Show the claim detail page, watch attestation cards light up as agents verify in real-time. Click through to Sui Explorer for one attestation.
 4. **30s** — Click "Settle", show the settlement result with tx digest and released funds
 5. **30s** — Visit /admin, show dashboard stats, optionally revoke an attestation and re-attempt settlement to show the rejection flow
@@ -292,4 +301,5 @@ Get-Process sui -ErrorAction SilentlyContinue | Stop-Process -Force
 
 - The settlement is **automatic** — once attestations exist, anyone can call `try_settle` and the contract enforces the rules
 - The agents are **independent** — each has its own keypair and Permit, so compromising one agent doesn't compromise the system
+- **No wallet required** — blockchain runs under the hood; users interact with a clean mobile-first interface
 - The model is **extensible** — Phase 2 adds a Cash-out Agent that bridges crypto settlement to fiat (VND) without touching the on-chain settlement logic (adapter pattern, per design doc section 4.5)

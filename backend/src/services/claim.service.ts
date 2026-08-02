@@ -16,6 +16,7 @@ export interface ClaimDetail {
   status: 'pending' | 'attesting' | 'ready_to_settle' | 'settled' | 'failed';
   attestationStatus: AttestationStatus;
   amount: number;
+  amountUsd: number;
   productType: number;
   customerAddress: string;
   externalId: string;
@@ -26,6 +27,7 @@ interface CreateClaimResult {
   claimId: string;
   subjectId: string;
   txDigest: string;
+  customerAddress: string;
 }
 
 interface SettleResult {
@@ -44,6 +46,15 @@ function generateClaimId(): string {
   ).join('');
 }
 
+function generateMockAddress(): string {
+  const chars = '0123456789abcdef';
+  let addr = '0x';
+  for (let i = 0; i < 64; i++) {
+    addr += chars[Math.floor(Math.random() * 16)];
+  }
+  return addr;
+}
+
 // ─── Public API ───────────────────────────────────────────────────
 
 /**
@@ -52,9 +63,9 @@ function generateClaimId(): string {
  * For PoC: the claim object is tracked in-memory and a placeholder on-chain
  * transaction is executed. The orchestrator is triggered automatically.
  *
- * @param amount          - Claim amount in SUI
+ * @param amount          - Claim amount in USD
  * @param productType     - 0 = flight delay, 1 = heavy rain
- * @param customerAddress - Sui address of the claimant
+ * @param customerAddress - Sui address of the claimant (generated if empty)
  * @param externalId      - Flight number or location identifier
  */
 export async function createClaim(
@@ -65,11 +76,16 @@ export async function createClaim(
 ): Promise<CreateClaimResult> {
   const { SETTLEMENT_PKG_ID, REGISTRY_ID } = CONTRACTS;
 
+  // Generate a mock wallet address if none provided (PoC mobile support)
+  if (!customerAddress) {
+    customerAddress = generateMockAddress();
+  }
+
   // Generate IDs for the new claim
   const claimId = generateClaimId();
   const subjectId = generateClaimId(); // In production, this is the on-chain object ID
 
-  console.log(`[ClaimService] Creating claim ${claimId} for ${amount} SUI (productType=${productType})`);
+  console.log(`[ClaimService] Creating claim ${claimId} for $${amount} USD (productType=${productType})`);
 
   // If the settlement contract is deployed, create the on-chain claim object
   if (SETTLEMENT_PKG_ID && REGISTRY_ID) {
@@ -112,6 +128,7 @@ export async function createClaim(
       FraudCheckPassed: false,
     },
     amount,
+    amountUsd: amount,
     productType,
     customerAddress,
     externalId,
@@ -127,7 +144,7 @@ export async function createClaim(
   // Return a synthetic digest for PoC mode
   const txDigest = SETTLEMENT_PKG_ID ? 'pending-on-chain' : 'poc-in-memory';
 
-  return { claimId, subjectId, txDigest };
+  return { claimId, subjectId, txDigest, customerAddress };
 }
 
 /**

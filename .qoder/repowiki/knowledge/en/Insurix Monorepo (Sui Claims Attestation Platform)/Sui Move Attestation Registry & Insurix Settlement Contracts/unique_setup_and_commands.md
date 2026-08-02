@@ -1,0 +1,1 @@
+Each Move package has its own `Move.toml` and `Move.lock`; demos are orchestrated via shell scripts in `attestations/demo/scripts/` (`demo-up.sh`, `demo-down.sh`, `run-demo.sh`, `localnets.py`) and `attestations/scripts/` (`attest-audit.sh`, `check.sh`, `create-box.sh`, `revoke-audit.sh`). Tests live alongside sources as `*_tests.move` files per package.
