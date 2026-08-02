@@ -1,0 +1,6 @@
+[package]
+name = "insurix_schemas"
+edition = "2024"
+
+[dependencies]
+attestations = { local = "../attestations/packages/attestations" }

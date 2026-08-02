@@ -1,0 +1,3 @@
+[submodule "contracts/attestations"]
+	path = contracts/attestations
+	url = https://github.com/MystenLabs/attestations.git
