@@ -54,7 +54,7 @@ fun create_escrow_for(scenario: &mut Scenario, claim_id: ID, amount: u64): ID {
 
 #[test]
 fun create_claim_sets_fields_correctly() {
-    let (mut scenario, _cap) = begin();
+    let (mut scenario, cap) = begin();
     let claim_id = create_claim(&mut scenario);
 
     let claim: Claim = scenario.take_shared();
@@ -66,6 +66,7 @@ fun create_claim_sets_fields_correctly() {
     assert!(!claim::is_settled(&claim));
     assert!(!claim::is_rejected(&claim));
     test_scenario::return_shared(claim);
+    transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
 
@@ -75,7 +76,7 @@ fun create_claim_sets_fields_correctly() {
 
 #[test]
 fun create_escrow_sets_fields_correctly() {
-    let (mut scenario, _cap) = begin();
+    let (mut scenario, cap) = begin();
     let claim_id = create_claim(&mut scenario);
     let escrow_id = create_escrow_for(&mut scenario, claim_id, CLAIM_AMOUNT);
 
@@ -88,6 +89,7 @@ fun create_escrow_sets_fields_correctly() {
     assert!(!escrow::is_released(&escrow));
     assert!(!escrow::is_reclaimed(&escrow));
     test_scenario::return_shared(escrow);
+    transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
 
@@ -113,6 +115,8 @@ fun try_settle_succeeds() {
     assert_eq!(escrow::status(&escrow_obj), 1);
     assert_eq!(escrow::balance(&escrow_obj), 0);
 
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
     transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
@@ -158,6 +162,8 @@ fun try_settle_accepts_attestation_ids() {
     assert!(claim::is_settled(&claim_obj));
     assert!(escrow::is_released(&escrow_obj));
 
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
     transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
@@ -181,6 +187,13 @@ fun double_settle_aborts() {
     settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Second settle aborts: claim is no longer pending.
     settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
+
+    // Unreachable at runtime (the call above aborts), but required so every
+    // static path consumes its non-drop values.
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
+    transfer::public_transfer(cap, ALICE);
+    scenario.end();
 }
 
 // =====================================================================
@@ -233,6 +246,13 @@ fun reject_after_settle_aborts() {
     settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Reject after settle aborts.
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, 1, scenario.ctx());
+
+    // Unreachable at runtime (the call above aborts), but required so every
+    // static path consumes its non-drop values.
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
+    transfer::public_transfer(cap, ALICE);
+    scenario.end();
 }
 
 /// Settling an already-rejected claim aborts.
@@ -250,6 +270,13 @@ fun settle_after_reject_aborts() {
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, 99, scenario.ctx());
     // Settle after reject aborts.
     settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
+
+    // Unreachable at runtime (the call above aborts), but required so every
+    // static path consumes its non-drop values.
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
+    transfer::public_transfer(cap, ALICE);
+    scenario.end();
 }
 
 // =====================================================================
@@ -271,6 +298,13 @@ fun double_release_aborts() {
     settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Direct release should abort (escrow no longer locked).
     escrow::release_funds(&mut escrow_obj, scenario.ctx());
+
+    // Unreachable at runtime (the call above aborts), but required so every
+    // static path consumes its non-drop values.
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
+    transfer::public_transfer(cap, ALICE);
+    scenario.end();
 }
 
 /// Direct double-reclaim on escrow aborts after rejection already reclaimed it.
@@ -288,6 +322,13 @@ fun double_reclaim_aborts() {
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, 1, scenario.ctx());
     // Direct reclaim should abort (escrow no longer locked).
     escrow::reclaim_funds(&mut escrow_obj, ALICE, scenario.ctx());
+
+    // Unreachable at runtime (the call above aborts), but required so every
+    // static path consumes its non-drop values.
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
+    transfer::public_transfer(cap, ALICE);
+    scenario.end();
 }
 
 // =====================================================================
@@ -310,6 +351,9 @@ fun full_settlement_lifecycle() {
     let escrow: Escrow = scenario.take_shared();
     assert!(escrow::is_locked(&escrow));
     test_scenario::return_shared(escrow);
+    // A returned shared object is only visible to `take_shared` again in a
+    // later transaction (mirrors real on-chain semantics).
+    scenario.next_tx(ALICE);
 
     // 3. Settle — transitions to settled/released.
     let mut claim_obj: Claim = scenario.take_shared();
@@ -325,6 +369,8 @@ fun full_settlement_lifecycle() {
     assert!(!escrow::is_locked(&escrow_obj));
     assert!(!escrow::is_reclaimed(&escrow_obj));
 
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
     transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
@@ -345,6 +391,9 @@ fun full_rejection_lifecycle() {
     let escrow: Escrow = scenario.take_shared();
     assert!(escrow::is_locked(&escrow));
     test_scenario::return_shared(escrow);
+    // A returned shared object is only visible to `take_shared` again in a
+    // later transaction (mirrors real on-chain semantics).
+    scenario.next_tx(ALICE);
 
     // 3. Reject — transitions to rejected/reclaimed.
     let mut claim_obj: Claim = scenario.take_shared();
@@ -360,6 +409,8 @@ fun full_rejection_lifecycle() {
     assert!(!escrow::is_locked(&escrow_obj));
     assert!(!escrow::is_released(&escrow_obj));
 
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
     transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
