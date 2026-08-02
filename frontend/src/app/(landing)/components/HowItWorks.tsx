@@ -29,14 +29,14 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 sm:py-28 lg:py-32 px-4 sm:px-6">
+    <section id="how-it-works" className="py-20 sm:py-28 lg:py-32 px-4 sm:px-6 font-sans">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            How It <span className="text-gradient">Works</span>
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-[#f8fafc] mb-4">
+            How It Works
           </h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             From claim submission to payout — fully automated, fully on-chain.
           </p>
         </div>
@@ -52,17 +52,17 @@ export default function HowItWorks() {
             <div key={step.number} className="relative group">
               {/* Connecting line */}
               {i < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-8 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-primary/30 to-transparent" />
+                <div className="hidden lg:block absolute top-8 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-emerald-500/30 to-transparent" />
               )}
 
               <div className="flex flex-col items-center text-center">
                 {/* Number badge */}
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl font-bold text-gradient">{step.number}</span>
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl font-bold text-emerald-400">{step.number}</span>
                 </div>
 
-                <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-semibold text-[#f8fafc] mb-2">{step.title}</h3>
+                <p className="text-slate-400 leading-relaxed">{step.description}</p>
               </div>
             </div>
           ))}

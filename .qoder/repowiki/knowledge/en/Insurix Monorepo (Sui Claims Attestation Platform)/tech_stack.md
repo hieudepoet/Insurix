@@ -1,1 +1,0 @@
-pnpm workspaces for multi-package orchestration; Move + Sui CLI for on-chain contracts; Express + Node.js for the backend API; Next.js 16 with @mysten/dapp-kit for the frontend blockchain integration.

@@ -1,1 +1,0 @@
-Express-based Node.js backend that exposes REST endpoints for insurance claims and orchestrates three parallel on-chain verification agents against the Sui blockchain to issue attestations.

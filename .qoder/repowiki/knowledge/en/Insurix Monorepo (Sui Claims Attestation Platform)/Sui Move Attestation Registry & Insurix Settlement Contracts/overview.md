@@ -1,1 +1,0 @@
-Move-based Sui contracts providing a generic typed attestation registry with per-subject derived-object boxes, three production Insurix schemas (identity, external data, fraud), and an escrow-backed insurance claim settlement flow.

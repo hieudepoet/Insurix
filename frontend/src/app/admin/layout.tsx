@@ -40,8 +40,8 @@ export default function AdminLayout({
   // Avoid hydration mismatch — localStorage is not available during SSR
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-orange-500 animate-spin" />
+      <div className="min-h-screen bg-[#060818] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -49,34 +49,29 @@ export default function AdminLayout({
   // ---- Auth gate: no API key ----
   if (!apiKey) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] bg-grid flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#060818] flex items-center justify-center px-5">
         <div className="w-full max-w-md">
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <div className="bg-[#0d1126] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] rounded-2xl p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={1.8}
                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                   />
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Admin Access</h1>
-                <p className="text-sm text-gray-400">Insurix Control Panel</p>
+                <h1 className="text-xl font-bold tracking-tight text-[#f8fafc]">Admin Access</h1>
+                <p className="text-sm text-slate-400">Insurix Control Panel</p>
               </div>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
+                <label className="block text-sm text-slate-400 mb-2">
                   API Key
                 </label>
                 <input
@@ -84,19 +79,19 @@ export default function AdminLayout({
                   value={inputKey}
                   onChange={(e) => setInputKey(e.target.value)}
                   placeholder="Enter admin API key"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/30 transition"
+                  className="w-full px-4 h-14 rounded-xl bg-[#060818] border border-white/5 text-[#f8fafc] placeholder-slate-500 focus:outline-none focus:border-emerald-500/30 transition"
                   autoFocus
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-medium hover:opacity-90 transition"
+                className="w-full h-14 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition"
               >
                 Access Dashboard
               </button>
             </form>
 
-            <p className="mt-4 text-xs text-gray-500 text-center">
+            <p className="mt-4 text-xs text-slate-500 text-center">
               Your API key is stored locally in your browser only.
             </p>
           </div>
@@ -104,7 +99,7 @@ export default function AdminLayout({
           <p className="mt-4 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-400 hover:text-white transition"
+              className="text-sm text-slate-400 hover:text-[#f8fafc] transition"
             >
               ← Back to site
             </Link>
@@ -120,9 +115,9 @@ export default function AdminLayout({
       {/* Admin header with logout */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
             <svg
-              className="w-5 h-5 text-white"
+              className="w-5 h-5 text-emerald-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -130,18 +125,18 @@ export default function AdminLayout({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.8}
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
               />
             </svg>
           </div>
-          <span className="text-lg font-bold text-white">
-            Insurix <span className="text-orange-400">Admin</span>
+          <span className="text-lg font-bold tracking-tight text-[#f8fafc]">
+            Insurix <span className="text-emerald-400">Admin</span>
           </span>
         </div>
         <button
           onClick={handleLogout}
-          className="text-sm text-gray-400 hover:text-red-400 transition"
+          className="text-sm text-slate-400 hover:text-red-400 transition"
         >
           Logout
         </button>

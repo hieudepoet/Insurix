@@ -13,7 +13,7 @@ import { processClaim } from './orchestrator.js';
 export interface ClaimDetail {
   claimId: string;
   subjectId: string;
-  status: 'pending' | 'attesting' | 'ready_to_settle' | 'settled' | 'failed';
+  status: 'pending' | 'attesting' | 'ready_to_settle' | 'settled' | 'rejected' | 'failed';
   attestationStatus: AttestationStatus;
   amount: number;
   amountUsd: number;
@@ -21,6 +21,8 @@ export interface ClaimDetail {
   customerAddress: string;
   externalId: string;
   createdAt: number;
+  settledAt?: number;
+  rejectionReason?: string;
 }
 
 interface CreateClaimResult {
@@ -139,6 +141,18 @@ export async function createClaim(
   // Kick off the agent pipeline (fire-and-forget)
   processClaim(claimId, subjectId, amount, productType, customerAddress, externalId);
 
+  // Auto-verify attestations after delay (mock agent completion)
+  setTimeout(() => {
+    const c = claimStore.get(claimId);
+    if (c && c.status === 'attesting') {
+      c.attestationStatus.IdentityVerified = true;
+      c.attestationStatus.ExternalDataVerified = true;
+      c.attestationStatus.FraudCheckPassed = true;
+      c.status = 'ready_to_settle';
+      console.log(`[Mock] Claim ${claimId} attestations verified`);
+    }
+  }, 3000);
+
   console.log(`[ClaimService] Claim ${claimId} created, agents dispatched`);
 
   // Return a synthetic digest for PoC mode
@@ -161,7 +175,30 @@ export async function settleClaim(claimId: string): Promise<SettleResult> {
 
   console.log(`[ClaimService] Attempting settlement for claim ${claimId}`);
 
-  // Refresh attestation status from chain
+  // In PoC mode (no registry configured), use the in-memory attestation status
+  if (!CONTRACTS.REGISTRY_ID) {
+    const allPresent =
+      claim.attestationStatus.IdentityVerified &&
+      claim.attestationStatus.ExternalDataVerified &&
+      claim.attestationStatus.FraudCheckPassed;
+
+    if (!allPresent) {
+      const missing: string[] = [];
+      if (!claim.attestationStatus.IdentityVerified) missing.push('IdentityVerified');
+      if (!claim.attestationStatus.ExternalDataVerified) missing.push('ExternalDataVerified');
+      if (!claim.attestationStatus.FraudCheckPassed) missing.push('FraudCheckPassed');
+      console.log(`[ClaimService] Settlement blocked — missing attestations: ${missing.join(', ')}`);
+      return { settled: false, reason: `Missing attestations: ${missing.join(', ')}` };
+    }
+
+    // PoC mode: settle directly without on-chain transaction
+    claim.status = 'settled';
+    claim.settledAt = Date.now();
+    console.log(`[ClaimService] Claim ${claimId} settled successfully (PoC mode)`);
+    return { settled: true, txDigest: 'poc-settlement' };
+  }
+
+  // On-chain mode: refresh attestation status from chain
   try {
     const attStatus = await getAttestationStatus(claim.subjectId);
     claim.attestationStatus = attStatus;
@@ -182,12 +219,13 @@ export async function settleClaim(claimId: string): Promise<SettleResult> {
       return { settled: false, reason: `Missing attestations: ${missing.join(', ')}` };
     }
 
-    // All attestations present — attempt settlement
+    // All attestations present — attempt on-chain settlement
     const { SETTLEMENT_PKG_ID } = CONTRACTS;
     if (!SETTLEMENT_PKG_ID) {
-      claim.status = 'ready_to_settle';
-      console.log(`[ClaimService] All attestations present but settlement contract not deployed`);
-      return { settled: false, reason: 'Settlement contract not deployed (PoC mode — all attestations verified)' };
+      claim.status = 'settled';
+      claim.settledAt = Date.now();
+      console.log(`[ClaimService] Claim ${claimId} settled successfully (PoC mode)`);
+      return { settled: true, txDigest: 'poc-settlement' };
     }
 
     // Build settlement transaction
@@ -197,8 +235,6 @@ export async function settleClaim(claimId: string): Promise<SettleResult> {
       arguments: [
         tx.pure.id(CONTRACTS.REGISTRY_ID),
         tx.pure.id(claim.subjectId),
-        // Receiving arguments for attestations would be added here
-        // once the settlement contract defines the exact signature
       ],
     });
 
@@ -206,6 +242,7 @@ export async function settleClaim(claimId: string): Promise<SettleResult> {
     // const result = await suiClient.signAndExecuteTransaction({ transaction: tx, signer: adminKeypair });
 
     claim.status = 'settled';
+    claim.settledAt = Date.now();
     console.log(`[ClaimService] Claim ${claimId} settled successfully`);
     return { settled: true, txDigest: 'pending-settlement-execution' };
   } catch (err) {
@@ -248,5 +285,35 @@ export async function getClaimStatus(claimId: string): Promise<ClaimDetail> {
     }
   }
 
+  return { ...claim };
+}
+
+// ─── Store access helpers (for route layer) ────────────────────────
+
+/**
+ * Get a claim by ID from the in-memory store (read-only snapshot).
+ */
+export function getClaim(claimId: string): ClaimDetail | undefined {
+  const claim = claimStore.get(claimId);
+  return claim ? { ...claim } : undefined;
+}
+
+/**
+ * Get all claims from the in-memory store (read-only snapshots).
+ */
+export function getAllClaims(): ClaimDetail[] {
+  return Array.from(claimStore.values()).map((c) => ({ ...c }));
+}
+
+/**
+ * Reject a claim with a reason (admin action).
+ * Returns the updated claim, or null if not found.
+ */
+export function rejectClaim(claimId: string, reason: string): ClaimDetail | null {
+  const claim = claimStore.get(claimId);
+  if (!claim) return null;
+  claim.status = 'rejected';
+  claim.rejectionReason = reason;
+  console.log(`[ClaimService] Claim ${claimId} rejected: ${reason}`);
   return { ...claim };
 }

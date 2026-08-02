@@ -19,13 +19,11 @@
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive claims CRUD operations documentation
-- Included settlement processing endpoints
-- Documented administrative functions and management APIs
-- Added PoC-mode fallback mechanisms for development environments
-- Enhanced API endpoint reference with complete request/response schemas
-- Updated authentication and authorization requirements
-- Expanded error handling and validation rules documentation
+- Updated Claims Management API to support wallet-less authentication flow with optional walletAddress parameters
+- Modified all claim endpoints to return USD amounts instead of cryptocurrency values
+- Adjusted Admin endpoints to accommodate new authentication flow without mandatory blockchain integration
+- Enhanced request/response schemas to reflect the new wallet-less authentication approach
+- Updated authentication documentation to remove blockchain dependency requirements
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -45,7 +43,7 @@
 15. [Conclusion](#conclusion)
 
 ## Introduction
-This document describes the comprehensive RESTful API endpoints exposed by the Insurix backend server, including HTTP methods, URL patterns, request/response schemas, authentication requirements, validation rules, error codes, and status messages. The API provides full CRUD operations for claims management, settlement processing, administrative functions, and includes PoC-mode fallback mechanisms for development environments. Documentation is derived from the backend source files to ensure accuracy and traceability.
+This document describes the comprehensive RESTful API endpoints exposed by the Insurix backend server, including HTTP methods, URL patterns, request/response schemas, authentication requirements, validation rules, error codes, and status messages. The API provides full CRUD operations for claims management, settlement processing, administrative functions, and includes PoC-mode fallback mechanisms for development environments. **Updated** The API now supports wallet-less authentication flow, eliminating mandatory blockchain integration requirements while maintaining security through traditional authentication methods. Documentation is derived from the backend source files to ensure accuracy and traceability.
 
 ## Project Structure
 The backend is organized into modular TypeScript files with clear separation of concerns:
@@ -103,16 +101,16 @@ A --> M["Config: SUI Client<br/>config/sui-client.ts"]
 - [sui-client.ts](file://backend/src/config/sui-client.ts)
 
 ## Core Components
-- Authentication middleware validates requests and enforces access control with role-based permissions.
+- Authentication middleware validates requests and enforces access control with role-based permissions. **Updated** Now supports wallet-less authentication flow without mandatory blockchain integration.
 - Error handler centralizes error responses and status codes with detailed error information.
 - Attestation service manages attestation verification workflows with external data integration.
-- Claim service handles complete claim lifecycle management including submission, validation, and processing.
+- Claim service handles complete claim lifecycle management including submission, validation, and processing. **Updated** Now accepts optional walletAddress parameters and returns USD amounts.
 - Orchestrator coordinates multi-step processes across agents and services.
 - External data agent fetches third-party information for validations and risk assessment.
 - Fraud check agent evaluates risk signals using multiple data sources.
 - Identity agent verifies user identities through blockchain-based credentials.
-- Administrative routes provide system management and monitoring capabilities.
-- Claims routes expose comprehensive CRUD operations for claim management.
+- Administrative routes provide system management and monitoring capabilities. **Updated** Adjusted to work with wallet-less authentication flow.
+- Claims routes expose comprehensive CRUD operations for claim management. **Updated** Modified to support optional walletAddress and USD currency format.
 - Configuration modules provide cryptographic keys and blockchain client setup.
 
 **Section sources**
@@ -164,7 +162,7 @@ Claim->>Fraud : "Run fraud checks"
 Claim->>Ext : "Fetch external data"
 Ext-->>Claim : "Data response"
 Fraud-->>Claim : "Risk assessment"
-Claim-->>Claims : "Claim result"
+Claim-->>Claims : "Claim result (USD)"
 Claims-->>Server : "Claims response"
 end
 Server-->>Client : "HTTP Response"
@@ -187,7 +185,7 @@ Server-->>Client : "HTTP Response"
 - Purpose: Validates tokens, enforces permissions, and attaches authenticated context to requests.
 - Behavior: Rejects unauthenticated or unauthorized requests with appropriate error responses.
 - Integration: Applied globally or per-route via the server entry point.
-- Features: Role-based access control, JWT validation, session management.
+- Features: Role-based access control, JWT validation, session management. **Updated** Now supports wallet-less authentication flow without mandatory blockchain integration.
 
 ```mermaid
 flowchart TD
@@ -195,7 +193,7 @@ Start(["Request Received"]) --> CheckToken["Extract and validate token"]
 CheckToken --> TokenValid{"Token valid?"}
 TokenValid --> |No| Deny["Return 401 Unauthorized"]
 TokenValid --> |Yes| CheckRole["Check user role/permissions"]
-CheckRole --> RoleValid{"Role authorized?"}
+RoleValid{"Role authorized?"}
 RoleValid --> |No| Forbidden["Return 403 Forbidden"]
 RoleValid --> |Yes| AttachCtx["Attach auth context to request"]
 AttachCtx --> Next["Proceed to route handler"]
@@ -262,7 +260,7 @@ AttestationService --> ExternalDataAgent : "uses"
 - Purpose: Handles claim submission, identity verification, and fraud checks.
 - Key operations: Submit claim, verify identity, evaluate fraud risk, update claim status.
 - Dependencies: Identity agent and fraud check agent.
-- Features: Complete claim lifecycle management, status transitions, audit trail.
+- Features: Complete claim lifecycle management, status transitions, audit trail. **Updated** Now accepts optional walletAddress parameter and returns USD amounts instead of cryptocurrency values.
 
 ```mermaid
 classDiagram
@@ -385,11 +383,13 @@ Validate --> Complete["Complete workflow"]
   "amount": "number",
   "description": "string",
   "evidence": ["string"],
+  "walletAddress": "string",
   "metadata": {}
 }
 ```
 - **Response**: 201 Created with claim details
 - **Validation**: Policy must exist, amount must be positive, description required
+- **Updated** walletAddress parameter is now optional and not required for authentication
 
 ### Get Claim
 - **Endpoint**: `GET /api/v1/claims/:id`
@@ -399,6 +399,7 @@ Validate --> Complete["Complete workflow"]
   - `id`: string - Claim identifier
 - **Response**: 200 OK with claim details
 - **Error**: 404 Not Found if claim doesn't exist
+- **Updated** All monetary amounts are returned in USD currency format
 
 ### Update Claim
 - **Endpoint**: `PUT /api/v1/claims/:id`
@@ -431,6 +432,7 @@ Validate --> Complete["Complete workflow"]
   - `dateFrom`: string - Start date filter
   - `dateTo`: string - End date filter
 - **Response**: 200 OK with paginated claims list
+- **Updated** All monetary values in responses are now in USD format
 
 ### Update Claim Status
 - **Endpoint**: `PATCH /api/v1/claims/:id/status`
@@ -470,6 +472,7 @@ Validate --> Complete["Complete workflow"]
 ```
 - **Response**: 201 Created with settlement details
 - **Validation**: Claim must be approved, amount must match policy limits
+- **Updated** All settlement amounts are processed in USD currency
 
 ### Get Settlement
 - **Endpoint**: `GET /api/v1/settlements/:id`
@@ -478,6 +481,7 @@ Validate --> Complete["Complete workflow"]
 - **Path Parameters**: 
   - `id`: string - Settlement identifier
 - **Response**: 200 OK with settlement details
+- **Updated** All monetary values returned in USD format
 
 ### Update Settlement
 - **Endpoint**: `PUT /api/v1/settlements/:id`
@@ -496,6 +500,7 @@ Validate --> Complete["Complete workflow"]
   - `id`: string - Settlement identifier
 - **Response**: 200 OK with payment processing result
 - **Integration**: Connects with blockchain for on-chain settlement
+- **Updated** Payment amounts are now processed in USD currency
 
 ### Cancel Settlement
 - **Endpoint**: `POST /api/v1/settlements/:id/cancel`
@@ -531,6 +536,7 @@ Validate --> Complete["Complete workflow"]
 - **Delete User**: `DELETE /api/v1/admin/users/:id`
 - **List Users**: `GET /api/v1/admin/users`
 - **Authentication**: Required (admin only)
+- **Updated** User authentication no longer requires blockchain wallet integration
 
 ### System Configuration
 - **Get Config**: `GET /api/v1/admin/config`
@@ -612,6 +618,13 @@ Validate --> Complete["Complete workflow"]
 - `X-Content-Type-Options: nosniff` - MIME type sniffing prevention
 - `Strict-Transport-Security: max-age=31536000` - HTTPS enforcement
 - `X-XSS-Protection: 1; mode=block` - XSS protection
+
+### Wallet-Less Authentication Flow
+- **Updated** Authentication no longer requires blockchain wallet integration
+- Traditional JWT-based authentication is now the primary method
+- Optional walletAddress parameter supported for backward compatibility
+- All monetary values processed and returned in USD currency format
+- Blockchain integration remains available but is no longer mandatory
 
 **Section sources**
 - [auth.ts](file://backend/src/middleware/auth.ts)
@@ -734,4 +747,4 @@ Validate --> Complete["Complete workflow"]
 - [claims.ts](file://backend/src/routes/claims.ts)
 
 ## Conclusion
-The Insurix backend provides a comprehensive and secure API for insurance claim management, settlement processing, and administrative functions. The modular architecture ensures clear separation of concerns while maintaining robust authentication, authorization, and error handling. The inclusion of PoC-mode fallback mechanisms facilitates development and testing, while the extensive API documentation enables efficient integration. Future enhancements should focus on performance optimization, additional monitoring capabilities, and expanded integration options.
+The Insurix backend provides a comprehensive and secure API for insurance claim management, settlement processing, and administrative functions. **Updated** The recent enhancements introduce a wallet-less authentication flow that eliminates mandatory blockchain integration requirements while maintaining robust security through traditional authentication methods. All monetary values are now processed and returned in USD currency format, improving usability and reducing complexity. The modular architecture ensures clear separation of concerns while maintaining robust authentication, authorization, and error handling. The inclusion of PoC-mode fallback mechanisms facilitates development and testing, while the extensive API documentation enables efficient integration. Future enhancements should focus on performance optimization, additional monitoring capabilities, and expanded integration options.

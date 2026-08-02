@@ -72,6 +72,11 @@ export interface RevokeResponse {
   attestationType: string;
 }
 
+export interface RejectResponse {
+  status: 'rejected';
+  rejectionReason: string;
+}
+
 export interface AdminClaim {
   claimId: string;
   claimType: 'flight-delay' | 'weather';
@@ -169,6 +174,17 @@ export const apiClient = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': adminKey },
       body: JSON.stringify({ attestationType }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+
+  async rejectClaim(claimId: string, reason: string): Promise<RejectResponse> {
+    const adminKey = typeof window !== 'undefined' ? localStorage.getItem('insurix_admin_key') || '' : '';
+    const res = await fetch(`${BACKEND_URL}/api/admin/claims/${claimId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': adminKey },
+      body: JSON.stringify({ reason }),
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

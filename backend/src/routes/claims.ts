@@ -1,21 +1,15 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { createClaim, getClaimStatus, settleClaim } from '../services/claim.service.js';
+import {
+  createClaim,
+  getClaimStatus,
+  settleClaim,
+  getClaim,
+  getAllClaims,
+  type ClaimDetail,
+} from '../services/claim.service.js';
 import { AppError } from '../middleware/error-handler.js';
 
 const router: Router = Router();
-
-// In-memory claim tracking (PoC - mirrors claim.service.ts claimStore)
-export const claimIndex = new Map<string, {
-  claimId: string;
-  claimType: 'flight-delay' | 'weather';
-  amount: number;
-  amountUsd: number;
-  status: string;
-  walletAddress: string;
-  createdAt: number;
-  settledAt?: number;
-  rejectionReason?: string;
-}>();
 
 // Helper to map productType to claimType
 function productTypeToClaimType(productType: number): 'flight-delay' | 'weather' {
@@ -25,6 +19,32 @@ function productTypeToClaimType(productType: number): 'flight-delay' | 'weather'
 // Helper to map claimType to productType
 function claimTypeToProductType(claimType: 'flight-delay' | 'weather'): number {
   return claimType === 'flight-delay' ? 0 : 1;
+}
+
+// Normalize service status to API status (pending | settled | rejected)
+function normalizeStatus(status: string): 'pending' | 'settled' | 'rejected' {
+  if (status === 'settled') return 'settled';
+  if (status === 'rejected' || status === 'failed') return 'rejected';
+  return 'pending';
+}
+
+// Map a ClaimDetail from the service to the API list/detail response shape
+function toApiShape(c: ClaimDetail) {
+  return {
+    claimId: c.claimId,
+    claimType: productTypeToClaimType(c.productType),
+    amount: c.amount,
+    amountUsd: c.amountUsd,
+    status: normalizeStatus(c.status),
+    attestationProgress: {
+      identity: c.attestationStatus.IdentityVerified,
+      externalData: c.attestationStatus.ExternalDataVerified,
+      fraudCheck: c.attestationStatus.FraudCheckPassed,
+    },
+    createdAt: c.createdAt,
+    settledAt: c.settledAt,
+    rejectionReason: c.rejectionReason,
+  };
 }
 
 // POST /claims - Create a new claim
@@ -41,17 +61,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
     // walletAddress is optional — service generates a mock address if empty
     const result = await createClaim(amount, productType, walletAddress || '', externalId);
-
-    // Track in local index (use the address from service, which may be generated)
-    claimIndex.set(result.claimId, {
-      claimId: result.claimId,
-      claimType,
-      amount,
-      amountUsd: amount,
-      status: 'pending',
-      walletAddress: result.customerAddress,
-      createdAt: Date.now(),
-    });
 
     res.status(201).json({
       claimId: result.claimId,
@@ -70,21 +79,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const wallet = req.query.wallet as string | undefined;
 
-    const claims = Array.from(claimIndex.values())
-      .filter(c => !wallet || c.walletAddress === wallet)
-      .map(c => ({
-        claimId: c.claimId,
-        claimType: c.claimType,
-        amount: c.amount,
-        amountUsd: c.amountUsd,
-        status: c.status,
-        attestationProgress: {
-          identity: false,
-          externalData: false,
-          fraudCheck: false,
-        },
-        createdAt: c.createdAt,
-      }));
+    const claims = getAllClaims()
+      .filter((c) => !wallet || c.customerAddress === wallet)
+      .map(toApiShape);
 
     res.json(claims);
   } catch (err) {
@@ -96,37 +93,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const localClaim = claimIndex.get(id);
 
-    if (!localClaim) {
+    // Check existence first (sync, from unified store)
+    if (!getClaim(id)) {
       throw new AppError(404, 'Claim not found');
     }
 
-    // Try to get fresh status from service
-    let attestationProgress = { identity: false, externalData: false, fraudCheck: false };
-    try {
-      const status = await getClaimStatus(id);
-      attestationProgress = {
-        identity: status.attestationStatus.IdentityVerified,
-        externalData: status.attestationStatus.ExternalDataVerified,
-        fraudCheck: status.attestationStatus.FraudCheckPassed,
-      };
-      localClaim.status = status.status;
-    } catch {
-      // Use cached status if service call fails
-    }
+    // Get fresh status (may refresh attestation from chain if configured)
+    const claim = await getClaimStatus(id);
 
-    res.json({
-      claimId: localClaim.claimId,
-      claimType: localClaim.claimType,
-      amount: localClaim.amount,
-      amountUsd: localClaim.amountUsd,
-      status: localClaim.status,
-      attestationProgress,
-      createdAt: localClaim.createdAt,
-      settledAt: localClaim.settledAt,
-      rejectionReason: localClaim.rejectionReason,
-    });
+    res.json(toApiShape(claim));
   } catch (err) {
     next(err);
   }
@@ -136,24 +112,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.post('/:id/settle', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const localClaim = claimIndex.get(id);
 
-    if (!localClaim) {
+    if (!getClaim(id)) {
       throw new AppError(404, 'Claim not found');
     }
 
     const result = await settleClaim(id);
 
-    const status = result.settled ? 'settled' : 'rejected';
-    localClaim.status = status;
-    if (result.settled) {
-      localClaim.settledAt = Date.now();
-    } else {
-      localClaim.rejectionReason = result.reason;
-    }
-
     res.json({
-      status,
+      status: result.settled ? 'settled' : 'rejected',
       reason: result.reason,
       txDigest: result.txDigest || '',
     });

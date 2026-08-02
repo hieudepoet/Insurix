@@ -1,1 +1,0 @@
-pnpm workspace monorepo that wires the Move-based Sui contracts, Express backend verification agents, and Next.js frontend into a single insurance-claim attestation platform.

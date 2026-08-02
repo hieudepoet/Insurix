@@ -1,5 +1,0 @@
-- Client components opt into interactivity by placing `'use client'` at the top of the file rather than using component-level directives.
-- Environment-driven configuration is accessed through `process.env.NEXT_PUBLIC_*` variables with sensible defaults (backend URL, Sui network) instead of hard-coded values.
-- API responses are modeled with explicit TypeScript interfaces (`Claim`, `AttestationStatus`, `ClaimDetail`) and exposed through a single `apiClient` object with async fetch wrappers that throw on non-OK responses.
-- Route-scoped layouts are grouped under `src/app/(group)/layout.tsx` to compose shared chrome (navigation, footer, scroll behavior) per section of the app.
-- Sui explorer links are generated through dedicated helper functions (`getExplorerUrl`, `getObjectUrl`) that branch on the configured network rather than string-concatenating URLs inline.

@@ -20,9 +20,9 @@ function Dodecahedron() {
     <mesh ref={meshRef}>
       <dodecahedronGeometry args={[1.5, 0]} />
       <meshStandardMaterial
-        color="#3b82f6"
+        color="#10b981"
         wireframe
-        emissive="#3b82f6"
+        emissive="#10b981"
         emissiveIntensity={0.3}
       />
     </mesh>
@@ -44,9 +44,9 @@ function FloatingOctahedron({ position, speed }: { position: [number, number, nu
       <mesh ref={meshRef} position={position} scale={0.4}>
         <octahedronGeometry args={[1, 0]} />
         <meshStandardMaterial
-          color="#06b6d4"
+          color="#8b5cf6"
           wireframe
-          emissive="#06b6d4"
+          emissive="#8b5cf6"
           emissiveIntensity={0.4}
         />
       </mesh>
@@ -60,8 +60,8 @@ function FloatingSphere({ position }: { position: [number, number, number] }) {
       <mesh position={position} scale={0.15}>
         <sphereGeometry args={[1, 16, 16]} />
         <meshStandardMaterial
-          color="#8b5cf6"
-          emissive="#8b5cf6"
+          color="#10b981"
+          emissive="#10b981"
           emissiveIntensity={0.8}
         />
       </mesh>
@@ -89,7 +89,7 @@ function Particles() {
           args={[positions, 3]}
         />
       </bufferGeometry>
-      <pointsMaterial size={0.05} color="#3b82f6" transparent opacity={0.6} />
+      <pointsMaterial size={0.05} color="#10b981" transparent opacity={0.6} />
     </points>
   );
 }
@@ -99,7 +99,7 @@ function Scene() {
     <>
       <ambientLight intensity={0.2} />
       <pointLight position={[10, 10, 10]} intensity={0.5} />
-      <pointLight position={[-10, -10, -10]} color="#06b6d4" intensity={0.3} />
+      <pointLight position={[-10, -10, -10]} color="#8b5cf6" intensity={0.3} />
 
       <Dodecahedron />
 
@@ -132,7 +132,7 @@ export default function HeroScene() {
       <Canvas
         camera={{ position: [0, 0, 6], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
-        style={{ background: "linear-gradient(180deg, #0a0e27 0%, #1a1a3e 100%)" }}
+        style={{ background: "linear-gradient(180deg, #060818 0%, #0d1126 100%)" }}
       >
         <Scene />
       </Canvas>

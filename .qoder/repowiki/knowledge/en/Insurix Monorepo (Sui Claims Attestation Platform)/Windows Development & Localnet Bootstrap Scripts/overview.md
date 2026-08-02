@@ -1,1 +1,0 @@
-PowerShell helper scripts that bootstrap the Insurix development environment by starting a local Sui network, launching the backend and frontend dev servers, and seeding demo claim data via the API.

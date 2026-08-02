@@ -2,12 +2,19 @@
 
 <cite>
 **Referenced Files in This Document**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Completely removed all wallet connectivity and blockchain integration references
+- Updated architecture to reflect localStorage-based session management
+- Removed all @mysten/dapp-kit, wallet provider configuration, and blockchain transaction signing content
+- Replaced with session-based authentication flow documentation
+- Updated all diagrams and examples to reflect the new architecture
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -21,163 +28,123 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document explains how the Insurix frontend integrates with Sui wallets and blockchain services, covering wallet connection, authentication flow, session management, Sui client utilities for blockchain interactions, transaction signing, account management, and the API client used to communicate with the backend. It also provides practical examples and guidance for handling connection states and errors.
+This document explains how the Insurix frontend manages user sessions and communicates with backend services. The application has transitioned from blockchain wallet connectivity to a localStorage-based session management system. This approach provides a simpler, more accessible authentication flow while maintaining secure communication with the backend API for business logic and data persistence.
 
 ## Project Structure
-The relevant frontend code for wallet connectivity and blockchain integration is organized under:
-- UI components for wallet connection and user interaction
-- Library modules for Sui client utilities and API communication
+The relevant frontend code for session management and API communication is organized under:
+- Session management utilities for localStorage-based authentication
+- Library modules for API communication and error handling
 - App layout and feature pages that consume these modules
 
 ```mermaid
 graph TB
 subgraph "Frontend"
-A["components/WalletConnect.tsx"]
-B["lib/sui-client.ts"]
-C["lib/api-client.ts"]
-D["app/layout.tsx"]
-E["app/claims/page.tsx"]
+A["lib/session.tsx"]
+B["lib/api-client.ts"]
+C["app/layout.tsx"]
+D["app/claims/page.tsx"]
 end
 A --> B
-A --> C
+C --> A
 D --> A
-E --> A
-E --> C
-B --> |"Sui RPC / JSON-RPC"| F["Sui Network"]
-C --> |"HTTP REST/JSON"| G["Backend API"]
+D --> B
+A --> |"localStorage"| E["Browser Storage"]
+B --> |"HTTP REST/JSON"| F["Backend API"]
 ```
 
 **Diagram sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 
 **Section sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 
 ## Core Components
-- WalletConnect component: Manages wallet discovery, connection prompts, and state synchronization (connected/disconnected accounts, network).
-- Sui client utilities: Provide methods to interact with the Sui network, including fetching account info, building transactions, and signing via the connected wallet.
+- Session management: Handles localStorage-based authentication, session persistence, and user state synchronization across the application.
 - API client: Encapsulates HTTP requests to the backend, standardizing error handling, retries, and request/response patterns.
+- Layout components: Initialize global providers and manage authentication context throughout the application.
 
 Key responsibilities:
-- Maintain a consistent connection state across the app
-- Trigger wallet prompts when needed
-- Build and sign transactions using the active wallet
-- Communicate with the backend for off-chain operations and attestation workflows
+- Maintain consistent session state across the app using localStorage
+- Handle authentication flows without blockchain dependencies
+- Communicate with the backend for off-chain operations and business logic
+- Provide secure session management and token handling
 
 **Section sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 ## Architecture Overview
-The frontend orchestrates wallet connectivity and blockchain interactions through a layered approach:
-- UI layer triggers actions (connect wallet, submit claims)
-- WalletConnect manages wallet lifecycle and exposes hooks/state
-- Sui client handles on-chain calls and transaction signing
+The frontend orchestrates session management and backend communication through a streamlined approach:
+- UI layer triggers actions (login, submit claims)
+- Session management handles authentication state and localStorage persistence
 - API client communicates with the backend for business logic and data persistence
 
 ```mermaid
 sequenceDiagram
 participant U as "User"
-participant UI as "WalletConnect.tsx"
-participant SC as "sui-client.ts"
-participant BK as "api-client.ts"
-participant SN as "Sui Network"
+participant UI as "UI Components"
+participant S as "session.tsx"
+participant A as "api-client.ts"
 participant BE as "Backend API"
-U->>UI : Click "Connect Wallet"
-UI->>SC : Request wallet connection
-SC-->>UI : Connected account + network
-UI->>BK : Authenticate session (optional)
-BK-->>UI : Session token or status
+U->>UI : Click "Login"
+UI->>S : Authenticate user credentials
+S->>BE : Send login request
+BE-->>S : Return session token
+S->>S : Store token in localStorage
+S-->>UI : Set authenticated state
 U->>UI : Submit claim action
-UI->>SC : Build transaction payload
-SC->>SN : Sign and send transaction
-SN-->>SC : Tx response (hash/status)
-SC-->>UI : On-chain result
-UI->>BK : Post claim metadata
-BK-->>UI : Backend confirmation
-UI-->>U : Success feedback
+UI->>A : Make API call with auth header
+A->>BE : Request with session token
+BE-->>A : Return data or error
+A-->>UI : Process response
+UI-->>U : Display results
 ```
 
 **Diagram sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 ## Detailed Component Analysis
 
-### WalletConnect Component
+### Session Management
 Responsibilities:
-- Detect available wallets and prompt connection
-- Track connection state (account address, chain/network)
-- Expose helpers to trigger signed transactions from the UI
-- Integrate with the API client to establish sessions after successful connection
+- Manage user authentication state using localStorage
+- Handle session persistence across browser sessions
+- Provide hooks and utilities for accessing current user state
+- Manage logout and session cleanup
 
 Typical usage:
-- Wrap application features behind a connected-wallet guard
-- Display account details and network info
-- Provide buttons to initiate blockchain actions
+- Wrap application features behind an authenticated guard
+- Access current user information and permissions
+- Trigger authentication flows when needed
 
 ```mermaid
 flowchart TD
-Start(["Mount WalletConnect"]) --> CheckConn["Check existing connection"]
-CheckConn --> |Connected| ShowAccount["Show account + network"]
-CheckConn --> |Not connected| Prompt["Prompt wallet connect"]
-Prompt --> ConnectResult{"Connection success?"}
-ConnectResult --> |Yes| SyncState["Sync account + network state"]
-ConnectResult --> |No| HandleError["Handle error / retry"]
-SyncState --> Ready["Ready for actions"]
-ShowAccount --> Ready
-Ready --> ActionTrigger["User triggers action"]
-ActionTrigger --> SignTx["Invoke sui-client to build/sign tx"]
-SignTx --> ApiCall["Call api-client for backend sync"]
+Start(["Mount Session Provider"]) --> CheckSession["Check localStorage for existing session"]
+CheckSession --> |Found| LoadState["Load session state"]
+CheckSession --> |Not found| PromptAuth["Prompt authentication"]
+PromptAuth --> AuthResult{"Authentication success?"}
+AuthResult --> |Yes| SaveSession["Save session to localStorage"]
+AuthResult --> |No| HandleError["Handle authentication error"]
+SaveSession --> Ready["Ready for authenticated actions"]
+LoadState --> Ready
+Ready --> ActionTrigger["User triggers authenticated action"]
+ActionTrigger --> ApiCall["Call api-client with auth headers"]
 ApiCall --> Done(["Done"])
 ```
 
 **Diagram sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 **Section sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-
-### Sui Client Utilities
-Responsibilities:
-- Initialize and configure the Sui client for the target network
-- Fetch account information and balances
-- Build transaction blocks and call Move functions
-- Delegate signing to the connected wallet and return results
-
-Common operations:
-- Get current account and network
-- Build and execute transactions
-- Handle provider-specific signing flows
-
-```mermaid
-classDiagram
-class SuiClient {
-+getAccount()
-+getBalance(address)
-+buildTransaction(params)
-+signAndSend(tx)
-+subscribeToEvents(filter)
-}
-```
-
-**Diagram sources**
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
-
-**Section sources**
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 
 ### API Client
 Responsibilities:
@@ -210,26 +177,26 @@ class ApiClient {
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 ### App Layout and Feature Pages
-- The root layout initializes global providers and may inject wallet context.
-- Feature pages (e.g., claims) consume WalletConnect and API client to orchestrate user flows.
+- The root layout initializes global providers and manages authentication context.
+- Feature pages consume session management and API client to orchestrate user flows.
 
 ```mermaid
 sequenceDiagram
 participant L as "layout.tsx"
 participant P as "claims/page.tsx"
-participant W as "WalletConnect.tsx"
+participant S as "session.tsx"
 participant A as "api-client.ts"
-L->>W : Provide wallet context
-P->>W : Read connection state
+L->>S : Initialize session provider
+P->>S : Read authentication state
 P->>A : Load initial data
 A-->>P : Data or error
-P->>W : Trigger wallet actions if needed
+P->>S : Trigger authentication if needed
 ```
 
 **Diagram sources**
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 **Section sources**
@@ -237,60 +204,53 @@ P->>W : Trigger wallet actions if needed
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 
 ## Dependency Analysis
-- WalletConnect depends on Sui client utilities for on-chain operations and on the API client for backend synchronization.
-- Feature pages depend on WalletConnect for state and on the API client for data operations.
-- Sui client abstracts network specifics; API client abstracts HTTP concerns.
+- Session management depends on localStorage for persistence and the API client for backend communication.
+- Feature pages depend on session management for authentication state and on the API client for data operations.
+- API client abstracts HTTP concerns and handles authentication automatically.
 
 ```mermaid
 graph LR
-WC["WalletConnect.tsx"] --> SC["sui-client.ts"]
-WC --> AC["api-client.ts"]
-CP["claims/page.tsx"] --> WC
+SM["session.tsx"] --> AC["api-client.ts"]
+CP["claims/page.tsx"] --> SM
 CP --> AC
-LYT["layout.tsx"] --> WC
+LYT["layout.tsx"] --> SM
 ```
 
 **Diagram sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 
 **Section sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 - [claims/page.tsx](file://frontend/src/app/claims/page.tsx)
 - [layout.tsx](file://frontend/src/app/layout.tsx)
 
 ## Performance Considerations
-- Cache frequent read-only queries (balances, metadata) to reduce RPC load.
-- Debounce rapid wallet state changes to avoid excessive re-renders.
+- Cache frequently accessed session data to reduce localStorage operations.
+- Implement optimistic updates for better perceived responsiveness.
 - Use pagination and selective fields for large datasets from the backend.
-- Implement optimistic updates where safe to improve perceived responsiveness.
 - Set sensible timeouts and retry policies for network requests.
-
-[No sources needed since this section provides general guidance]
+- Debounce rapid state changes to avoid excessive re-renders.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
-- Wallet not detected: Ensure the browser has a supported Sui wallet extension installed and enabled.
-- Connection fails: Verify network configuration and CORS settings for both wallet provider and backend.
-- Transaction signing errors: Confirm the correct account and network are selected; validate transaction parameters.
-- API errors: Check authentication headers, endpoint availability, and error payloads returned by the backend.
+- Session not persisting: Verify localStorage availability and storage permissions in the browser.
+- Authentication fails: Check backend endpoint availability and network connectivity.
+- API errors: Verify authentication headers, endpoint availability, and error payloads returned by the backend.
+- State synchronization issues: Ensure proper session provider initialization and state updates.
 
 Operational tips:
-- Log connection events and errors at each layer (wallet, Sui client, API client).
+- Log authentication events and errors at each layer (session, API client).
 - Surface user-friendly messages for network failures and invalid inputs.
 - Provide retry mechanisms for transient errors.
+- Monitor localStorage usage and implement cleanup for expired sessions.
 
 **Section sources**
-- [WalletConnect.tsx](file://frontend/src/components/WalletConnect.tsx)
-- [sui-client.ts](file://frontend/src/lib/sui-client.ts)
+- [session.tsx](file://frontend/src/lib/session.tsx)
 - [api-client.ts](file://frontend/src/lib/api-client.ts)
 
 ## Conclusion
-The Insurix frontend integrates Sui wallets and blockchain interactions through a clear separation of concerns: a wallet connector UI, robust Sui client utilities, and a standardized API client. This architecture enables reliable connection management, secure transaction signing, and consistent backend communication while providing a smooth user experience.
-
-[No sources needed since this section summarizes without analyzing specific files]
+The Insurix frontend now uses a streamlined localStorage-based session management system instead of blockchain wallet connectivity. This approach provides a simpler, more accessible authentication flow while maintaining secure communication with the backend API. The architecture focuses on reliable session management, efficient API communication, and a smooth user experience without the complexity of blockchain interactions.

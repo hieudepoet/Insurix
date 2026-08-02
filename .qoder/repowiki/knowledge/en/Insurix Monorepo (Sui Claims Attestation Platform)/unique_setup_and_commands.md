@@ -1,1 +1,0 @@
-Root scripts: `pnpm dev` boots both backend and frontend concurrently, `pnpm build:backend` / `pnpm build:frontend` build each layer, and `pnpm test` / `pnpm lint` run across all workspace packages via `-r`. Contracts are deployed independently with the Sui Move toolchain before the app can function.

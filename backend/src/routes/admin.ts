@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { requireAdmin } from '../middleware/auth.js';
 import { AppError } from '../middleware/error-handler.js';
-import { claimIndex } from './claims.js';
+import { getClaim, getAllClaims, rejectClaim } from '../services/claim.service.js';
 import { Transaction } from '@mysten/sui/transactions';
 import { suiClient, CONTRACTS } from '../config/sui-client.js';
 
@@ -22,8 +22,7 @@ router.post('/claims/:id/revoke', requireAdmin, async (req: Request, res: Respon
       throw new AppError(400, `Invalid attestationType. Must be one of: ${validTypes.join(', ')}`);
     }
 
-    const localClaim = claimIndex.get(id);
-    if (!localClaim) {
+    if (!getClaim(id)) {
       throw new AppError(404, 'Claim not found');
     }
 
@@ -64,14 +63,40 @@ router.post('/claims/:id/revoke', requireAdmin, async (req: Request, res: Respon
   }
 });
 
+// POST /claims/:id/reject - Reject a claim (admin only)
+router.post('/claims/:id/reject', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+      throw new AppError(400, 'Missing required field: reason');
+    }
+
+    const updated = rejectClaim(id, reason);
+    if (!updated) {
+      throw new AppError(404, 'Claim not found');
+    }
+
+    console.log(`[Admin] Claim ${id} rejected: ${reason}`);
+
+    res.json({
+      status: 'rejected',
+      rejectionReason: reason,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /stats - Admin statistics
 router.get('/stats', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const claims = Array.from(claimIndex.values());
+    const claims = getAllClaims();
 
     const stats = {
       totalClaims: claims.length,
-      pendingClaims: claims.filter(c => c.status === 'pending' || c.status === 'attesting').length,
+      pendingClaims: claims.filter(c => c.status === 'pending' || c.status === 'attesting' || c.status === 'ready_to_settle').length,
       settledClaims: claims.filter(c => c.status === 'settled').length,
       rejectedClaims: claims.filter(c => c.status === 'rejected' || c.status === 'failed').length,
       totalAmount: claims.reduce((sum, c) => sum + (c.amountUsd ?? c.amount), 0),

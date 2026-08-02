@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   apiClient,
+  formatUsd,
+  truncateId,
   type AdminClaimDetail,
   type AttestationType,
 } from "@/lib/api-client";
@@ -17,7 +19,6 @@ interface AttestationMeta {
   label: string;
   progressKey: keyof AdminClaimDetail["attestationProgress"];
   description: string;
-  accent: string;
   icon: React.ReactNode;
 }
 
@@ -28,7 +29,6 @@ const ATTESTATION_META: AttestationMeta[] = [
     progressKey: "identity",
     description:
       "Confirms the claimant identity has been verified by the identity verifier.",
-    accent: "from-blue-500 to-cyan-500",
     icon: (
       <path
         strokeLinecap="round"
@@ -44,7 +44,6 @@ const ATTESTATION_META: AttestationMeta[] = [
     progressKey: "externalData",
     description:
       "Cross-checks claim against off-chain data sources (flights, weather, etc.).",
-    accent: "from-indigo-500 to-purple-500",
     icon: (
       <path
         strokeLinecap="round"
@@ -60,7 +59,6 @@ const ATTESTATION_META: AttestationMeta[] = [
     progressKey: "fraudCheck",
     description:
       "AI fraud-detection agents assess the claim for suspicious patterns.",
-    accent: "from-orange-500 to-red-500",
     icon: (
       <path
         strokeLinecap="round"
@@ -72,27 +70,13 @@ const ATTESTATION_META: AttestationMeta[] = [
   },
 ];
 
-function statusColor(status: string): string {
-  const s = status.toLowerCase();
-  if (s === "settled") return "text-green-400";
-  if (s === "rejected" || s === "failed") return "text-red-400";
-  return "text-yellow-400";
-}
-
 function statusBg(status: string): string {
   const s = status.toLowerCase();
   if (s === "settled")
-    return "bg-green-500/10 border-green-500/20 text-green-400";
+    return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
   if (s === "rejected" || s === "failed")
     return "bg-red-500/10 border-red-500/20 text-red-400";
-  return "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
-}
-
-function formatAmount(amount: number): string {
-  return amount.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+  return "bg-amber-500/10 border-amber-500/20 text-amber-400";
 }
 
 function formatDate(ts?: number): string {
@@ -119,6 +103,9 @@ export default function AdminClaimDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [confirmType, setConfirmType] = useState<AttestationType | null>(null);
   const [revoking, setRevoking] = useState<AttestationType | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejecting, setRejecting] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -153,7 +140,6 @@ export default function AdminClaimDetailPage({
     setRevoking(type);
     try {
       const res = await apiClient.revokeAttestation(id, type);
-      // Refresh claim to reflect updated state
       await loadClaim();
       setToast({
         type: "success",
@@ -171,6 +157,27 @@ export default function AdminClaimDetailPage({
     }
   };
 
+  const handleReject = async () => {
+    setRejecting(true);
+    try {
+      await apiClient.rejectClaim(id, rejectReason.trim());
+      await loadClaim();
+      setToast({
+        type: "success",
+        message: "Claim rejected successfully.",
+      });
+    } catch (e) {
+      setToast({
+        type: "error",
+        message: e instanceof Error ? e.message : "Failed to reject claim.",
+      });
+    } finally {
+      setRejecting(false);
+      setShowRejectModal(false);
+      setRejectReason("");
+    }
+  };
+
   const confirmMeta =
     confirmType != null
       ? ATTESTATION_META.find((m) => m.type === confirmType)
@@ -180,7 +187,7 @@ export default function AdminClaimDetailPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-orange-500 animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -189,16 +196,16 @@ export default function AdminClaimDetailPage({
   if (error || !claim) {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-          <h2 className="text-xl font-semibold text-red-400">
+        <div className="bg-[#0d1126] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] rounded-2xl p-8">
+          <h2 className="text-xl font-bold text-red-400">
             {error ? "Error" : "Claim not found"}
           </h2>
-          <p className="text-gray-400 mt-2 text-sm">
+          <p className="text-slate-400 mt-2 text-sm">
             {error || "The claim you are looking for does not exist."}
           </p>
           <button
             onClick={() => router.push("/admin")}
-            className="mt-6 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white transition"
+            className="mt-6 px-4 py-2.5 rounded-xl bg-[#060818] border border-white/5 text-sm text-slate-300 hover:text-[#f8fafc] transition"
           >
             ← Back to Dashboard
           </button>
@@ -212,84 +219,61 @@ export default function AdminClaimDetailPage({
   ).length;
 
   return (
-    <div className="space-y-6">
-      {/* Back button */}
-      <button
-        onClick={() => router.push("/admin")}
-        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        Back to Dashboard
-      </button>
+    <div className="space-y-5">
+      {/* Claim header: back arrow + truncated ID + status badge */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => router.push("/admin")}
+          className="p-2 -ml-2 rounded-lg text-slate-400 hover:text-[#f8fafc] transition"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <p className="font-mono text-xs text-slate-400">{truncateId(claim.claimId)}</p>
+        <span
+          className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${statusBg(
+            claim.status
+          )}`}
+        >
+          {claim.status}
+        </span>
+      </div>
 
-      {/* Header */}
+      {/* Amount card */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
+        className="bg-[#0d1126] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] rounded-2xl p-6"
       >
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">Claim Detail</h1>
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-xs font-medium border capitalize ${statusBg(
-                  claim.status
-                )}`}
-              >
-                {claim.status}
-              </span>
-            </div>
-            <p className="font-mono text-xs text-gray-400 mt-2 break-all">
-              {claim.claimId}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-gradient">
-              {formatAmount(claim.amount)}{" "}
-              <span className="text-sm text-gray-400">SUI</span>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Claim Amount</p>
-          </div>
+        <p className="text-4xl font-bold text-[#f8fafc]">
+          {formatUsd(claim.amount)}
+        </p>
+        <div className="mt-3 flex items-center gap-3 text-sm">
+          <span className="text-slate-400 capitalize">{claim.claimType.replace("-", " ")}</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-slate-400">{formatDate(claim.createdAt)}</span>
         </div>
       </motion.div>
 
-      {/* Claim metadata grid */}
+      {/* Attestation progress */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.4 }}
-        className="grid grid-cols-2 gap-3"
-      >
-        <MetaCard label="Claim Type" value={claim.claimType.replace("-", " ")} capitalize />
-        <MetaCard label="Status" value={claim.status} valueClass={statusColor(claim.status)} capitalize />
-        <MetaCard label="Created" value={formatDate(claim.createdAt)} />
-        <MetaCard
-          label="Settled At"
-          value={claim.settledAt ? formatDate(claim.settledAt) : "—"}
-        />
-      </motion.div>
-
-      {/* Attestation summary banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
+        className="bg-[#0d1126] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] rounded-2xl p-6"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-bold tracking-tight text-[#f8fafc]">
             Attestation Management
           </h2>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-slate-400">
             {doneCount}/{ATTESTATION_META.length} verified
           </span>
         </div>
@@ -298,7 +282,7 @@ export default function AdminClaimDetailPage({
             initial={{ width: 0 }}
             animate={{ width: `${(doneCount / ATTESTATION_META.length) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-orange-500 to-red-500"
+            className="h-full bg-emerald-500"
           />
         </div>
       </motion.div>
@@ -314,14 +298,18 @@ export default function AdminClaimDetailPage({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 + i * 0.06, duration: 0.4 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col"
+              className="bg-[#0d1126] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] rounded-2xl p-5 flex flex-col"
             >
               <div className="flex items-center justify-between">
                 <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${meta.accent} flex items-center justify-center`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+                    verified
+                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      : "bg-amber-500/10 border-amber-500/20"
+                  }`}
                 >
                   <svg
-                    className="w-5 h-5 text-white"
+                    className={`w-5 h-5 ${verified ? "text-emerald-400" : "text-amber-400"}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -332,21 +320,21 @@ export default function AdminClaimDetailPage({
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                     verified
-                      ? "bg-green-500/10 border-green-500/20 text-green-400"
-                      : "bg-white/5 border-white/10 text-gray-500"
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                      : "bg-white/5 border-white/5 text-slate-500"
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      verified ? "bg-green-400" : "bg-gray-600"
+                      verified ? "bg-emerald-400" : "bg-slate-600"
                     }`}
                   />
                   {verified ? "Verified" : "Pending"}
                 </span>
               </div>
 
-              <h3 className="mt-4 font-semibold text-white">{meta.label}</h3>
-              <p className="text-xs text-gray-400 mt-1 flex-1">
+              <h3 className="mt-4 font-semibold text-[#f8fafc]">{meta.label}</h3>
+              <p className="text-xs text-slate-400 mt-1 flex-1">
                 {meta.description}
               </p>
 
@@ -355,8 +343,8 @@ export default function AdminClaimDetailPage({
                 disabled={!verified || isRevoking}
                 className={`mt-4 w-full h-10 rounded-xl text-sm font-medium transition ${
                   verified
-                    ? "bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
-                    : "bg-white/5 border border-white/10 text-gray-600 cursor-not-allowed"
+                    ? "border border-red-500/30 text-red-400 hover:bg-red-500/10"
+                    : "bg-white/5 border border-white/5 text-slate-600 cursor-not-allowed"
                 }`}
               >
                 {isRevoking ? (
@@ -375,21 +363,37 @@ export default function AdminClaimDetailPage({
         })}
       </div>
 
-      {/* Settlement info */}
+      {/* Reject claim button */}
+      {!claim.rejectionReason && !claim.settledAt && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          <button
+            onClick={() => setShowRejectModal(true)}
+            className="w-full h-12 rounded-2xl border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/10 transition"
+          >
+            Reject Claim
+          </button>
+        </motion.div>
+      )}
+
+      {/* Settlement banner */}
       {(claim.settledAt || claim.rejectionReason) && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
-          className={`backdrop-blur-xl border rounded-2xl p-6 ${
+          className={`rounded-2xl p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] border ${
             claim.rejectionReason
               ? "bg-red-500/5 border-red-500/20"
-              : "bg-green-500/5 border-green-500/20"
+              : "bg-emerald-500/5 border-emerald-500/20"
           }`}
         >
-          <h2 className="text-lg font-semibold text-white">Settlement</h2>
+          <h2 className="text-lg font-bold tracking-tight text-[#f8fafc]">Settlement</h2>
           {claim.settledAt && !claim.rejectionReason ? (
-            <div className="mt-3 flex items-center gap-2 text-green-400">
+            <div className="mt-3 flex items-center gap-2 text-emerald-400">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -415,8 +419,8 @@ export default function AdminClaimDetailPage({
                 </svg>
                 <span className="text-sm">Claim rejected</span>
               </div>
-              <p className="text-sm text-gray-300">
-                <span className="text-gray-500">Reason: </span>
+              <p className="text-sm text-slate-300">
+                <span className="text-slate-500">Reason: </span>
                 {claim.rejectionReason}
               </p>
             </div>
@@ -431,7 +435,7 @@ export default function AdminClaimDetailPage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center px-5 bg-black/60 backdrop-blur-sm"
             onClick={() => !revoking && setConfirmType(null)}
           >
             <motion.div
@@ -440,10 +444,10 @@ export default function AdminClaimDetailPage({
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#0a0a0f] border border-white/10 rounded-2xl p-6 w-full max-w-md"
+              className="bg-[#0d1126] shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] rounded-2xl p-6 w-full max-w-md border border-white/5"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-red-400"
                     fill="none"
@@ -458,13 +462,13 @@ export default function AdminClaimDetailPage({
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-bold tracking-tight text-[#f8fafc]">
                   Revoke Attestation?
                 </h3>
               </div>
-              <p className="text-sm text-gray-400 mt-3">
+              <p className="text-sm text-slate-400 mt-3">
                 You are about to revoke the{" "}
-                <span className="text-white font-medium">
+                <span className="text-[#f8fafc] font-medium">
                   {confirmMeta.label}
                 </span>{" "}
                 attestation for this claim. This will invalidate the verification
@@ -474,16 +478,85 @@ export default function AdminClaimDetailPage({
                 <button
                   onClick={() => setConfirmType(null)}
                   disabled={!!revoking}
-                  className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white transition"
+                  className="px-4 py-2.5 rounded-xl bg-[#060818] border border-white/5 text-sm text-slate-300 hover:text-[#f8fafc] transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRevoke(confirmMeta.type)}
                   disabled={!!revoking}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                  className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50"
                 >
                   {revoking ? "Revoking…" : "Confirm Revoke"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reject confirmation modal */}
+      <AnimatePresence>
+        {showRejectModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-5 bg-black/60 backdrop-blur-sm"
+            onClick={() => !rejecting && setShowRejectModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0d1126] shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] rounded-2xl p-6 w-full max-w-md border border-white/5"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-red-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold tracking-tight text-[#f8fafc]">
+                  Reject Claim?
+                </h3>
+              </div>
+              <p className="text-sm text-slate-400 mt-3">
+                Provide a reason for rejecting this claim. This action cannot be undone.
+              </p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Enter rejection reason…"
+                rows={3}
+                className="mt-4 w-full rounded-xl bg-[#060818] border border-white/5 px-4 py-3 text-sm text-[#f8fafc] placeholder-slate-500 focus:outline-none focus:border-red-500/30 transition resize-none"
+              />
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  disabled={rejecting}
+                  className="px-4 py-2.5 rounded-xl bg-[#060818] border border-white/5 text-sm text-slate-300 hover:text-[#f8fafc] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={!rejectReason.trim() || rejecting}
+                  className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50"
+                >
+                  {rejecting ? "Rejecting…" : "Confirm Reject"}
                 </button>
               </div>
             </motion.div>
@@ -501,9 +574,9 @@ export default function AdminClaimDetailPage({
             className="fixed bottom-6 left-1/2 z-50"
           >
             <div
-              className={`flex items-center gap-3 px-5 py-3 rounded-xl border backdrop-blur-xl shadow-lg ${
+              className={`flex items-center gap-3 px-5 py-3 rounded-xl border shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] ${
                 toast.type === "success"
-                  ? "bg-green-500/10 border-green-500/30 text-green-400"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                   : "bg-red-500/10 border-red-500/30 text-red-400"
               }`}
             >
@@ -533,10 +606,10 @@ export default function AdminClaimDetailPage({
       </AnimatePresence>
 
       {/* Footer link */}
-      <div className="pt-4">
+      <div className="pt-2">
         <Link
           href="/admin"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition"
+          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-[#f8fafc] transition"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -549,31 +622,6 @@ export default function AdminClaimDetailPage({
           Back to Dashboard
         </Link>
       </div>
-    </div>
-  );
-}
-
-function MetaCard({
-  label,
-  value,
-  valueClass,
-  capitalize,
-}: {
-  label: string;
-  value: string;
-  valueClass?: string;
-  capitalize?: boolean;
-}) {
-  return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p
-        className={`mt-1 font-medium text-white ${valueClass ?? ""} ${
-          capitalize ? "capitalize" : ""
-        }`}
-      >
-        {value}
-      </p>
     </div>
   );
 }

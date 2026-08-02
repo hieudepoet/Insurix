@@ -18,12 +18,13 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced prerequisites section with detailed environment setup requirements
-- Added comprehensive step-by-step instructions for judges evaluating insurance claims process
-- Included screenshot guidance and visual references throughout the walkthrough
-- Expanded troubleshooting guide with specific error scenarios and solutions
-- Updated API endpoints reference with additional administrative functions
-- Enhanced smart contract integration section with deployment verification steps
+- Completely revised setup instructions to remove blockchain and wallet requirements
+- Updated authentication flow to focus on simplified session-based process
+- Enhanced mobile-first approach documentation with responsive design guidance
+- Streamlined prerequisites section to eliminate complex blockchain setup steps
+- Revised getting started guide to emphasize quick deployment without wallet configuration
+- Updated core features walkthrough to reflect wallet-less claim submission process
+- Simplified smart contract integration section while maintaining backend functionality
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -41,7 +42,7 @@
 
 Insurix is a decentralized insurance platform built on the Sui blockchain that combines AI-powered claim processing with blockchain-based settlement mechanisms. The platform provides a complete end-to-end solution for insurance claims management, from policy creation to automated settlement execution through smart contracts.
 
-This demo walkthrough guide will help you understand how to set up, run, and explore the Insurix platform, showcasing its key features including AI-driven fraud detection, identity verification, and automated claim settlement processes. The enhanced guide now includes detailed prerequisites, step-by-step instructions, and comprehensive troubleshooting tips specifically designed for judges evaluating the insurance claims process.
+This demo walkthrough guide will help you understand how to set up, run, and explore the Insurix platform with its new wallet-less flow and mobile-first approach. The enhanced guide now focuses on simplified session-based authentication, eliminating complex blockchain setup requirements while maintaining full access to all platform features including AI-driven fraud detection, identity verification, and automated claim settlement processes.
 
 ## Project Overview
 
@@ -51,11 +52,11 @@ Insurix consists of three main components:
 - RESTful API server handling business logic
 - AI agent orchestration for claim processing
 - Blockchain integration with Sui network
-- Authentication and authorization middleware
+- Session-based authentication middleware
 
 ### Frontend Application (Next.js/React)
-- Modern web interface for users and administrators
-- Wallet connectivity for blockchain interactions
+- Mobile-first responsive web interface for users and administrators
+- Simplified session-based authentication without wallet requirements
 - Real-time claim status tracking
 - Interactive dashboard for claim management
 
@@ -67,14 +68,14 @@ Insurix consists of three main components:
 
 ```mermaid
 graph TB
-subgraph "Frontend Layer"
-UI[User Interface]
+subgraph "Mobile-First Frontend Layer"
+UI[Responsive User Interface]
 Admin[Admin Dashboard]
-Wallet[Wallet Connect]
+Session[Session Management]
 end
 subgraph "Backend Services"
 API[REST API Server]
-Auth[Auth Middleware]
+Auth[Session Auth Middleware]
 Orchestrator[AI Orchestrator]
 Agents[AI Agents]
 end
@@ -86,7 +87,7 @@ Schemas[Schema Contracts]
 end
 UI --> API
 Admin --> API
-Wallet --> API
+Session --> API
 API --> Auth
 API --> Orchestrator
 Orchestrator --> Agents
@@ -108,16 +109,14 @@ Before setting up the Insurix platform, ensure you have the following installed 
 
 **Required Software:**
 - Node.js 18+ and pnpm package manager
-- Sui CLI and localnet setup
 - Git for version control
 - Docker (optional for containerized deployment)
-- A compatible Web3 wallet (e.g., Sui Wallet, Ethos Wallet)
 
 **Environment Requirements:**
-- Minimum 8GB RAM for local development
-- 20GB free disk space for blockchain data
+- Minimum 4GB RAM for local development
+- 10GB free disk space
 - Stable internet connection for initial setup
-- Port availability: 3000 (frontend), 8000 (backend), 9000 (Sui localnet)
+- Port availability: 3000 (frontend), 8000 (backend)
 
 ### Quick Setup
 
@@ -130,87 +129,72 @@ Before setting up the Insurix platform, ensure you have the following installed 
    # Install dependencies
    pnpm install
    
-   # Start local Sui network
-   ./scripts/start-localnet.ps1
-   ```
-
-2. **Deploy Smart Contracts**
-   ```bash
-   # Build and deploy Move contracts
-   sui move build --package contracts/insurix-settlement
-   sui move publish --gas-budget 100000000
-   ```
-
-3. **Start Backend Services**
-   ```bash
-   # Configure environment variables
-   cp .env.example .env
+   # Start backend services
    ./scripts/start-backend.ps1
    ```
 
-4. **Launch Frontend Application**
+2. **Launch Frontend Application**
    ```bash
    # Start development server
    ./scripts/start-frontend.ps1
    ```
 
+3. **Access the Platform**
+   - Open your browser and navigate to `http://localhost:3000`
+   - Use the simplified registration form to create an account
+   - No wallet or blockchain setup required
+
+**Updated** Simplified setup process eliminates blockchain and wallet configuration requirements while maintaining full platform functionality.
+
 **Section sources**
 - [scripts/start-backend.ps1](file://scripts/start-backend.ps1)
 - [scripts/start-frontend.ps1](file://scripts/start-frontend.ps1)
-- [scripts/start-localnet.ps1](file://scripts/start-localnet.ps1)
 
 ## Core Features Walkthrough
 
-### 1. User Registration and Identity Verification
+### 1. User Registration and Session-Based Authentication
 
-The platform begins with user registration and identity verification through AI-powered agents:
+The platform now uses a simplified session-based authentication system that eliminates wallet complexity:
 
 ```mermaid
 sequenceDiagram
 participant User as "User"
-participant Frontend as "Frontend App"
+participant Frontend as "Mobile-First UI"
 participant Backend as "Backend API"
-participant IdentityAgent as "Identity Agent"
-participant Blockchain as "Sui Network"
+participant Session as "Session Manager"
 User->>Frontend : Submit Registration Data
-Frontend->>Backend : POST /api/register
-Backend->>IdentityAgent : Verify Identity
-IdentityAgent->>Blockchain : Store Identity Hash
-Blockchain-->>IdentityAgent : Transaction ID
-IdentityAgent-->>Backend : Verification Result
-Backend-->>Frontend : Registration Success
-Frontend-->>User : Welcome Dashboard
+Frontend->>Backend : POST /api/auth/register
+Backend->>Session : Create Session
+Session-->>Backend : Session Token
+Backend-->>Frontend : Welcome Dashboard
+Frontend-->>User : Access Granted
 ```
 
-**Updated** Enhanced with detailed screenshot guidance for each step of the registration process, including form validation feedback and success notifications.
+**Updated** Replaced wallet-based authentication with streamlined session management for improved user experience and accessibility.
 
 **Diagram sources**
-- [backend/src/agents/identity.ts](file://backend/src/agents/identity.ts)
+- [backend/src/middleware/auth.ts](file://backend/src/middleware/auth.ts)
 - [backend/src/routes/claims.ts](file://backend/src/routes/claims.ts)
 
-### 2. Claim Submission Process
+### 2. Mobile-Optimized Claim Submission Process
 
-Users can submit insurance claims through an intuitive interface:
+Users can submit insurance claims through a responsive, mobile-first interface:
 
 ```mermaid
 flowchart TD
-Start([Claim Submission]) --> Validate["Validate Input Data"]
-Validate --> CheckFraud["Run Fraud Detection"]
-CheckFraud --> FraudDetected{"Fraud Detected?"}
-FraudDetected --> |Yes| Reject["Reject Claim"]
-FraudDetected --> |No| ProcessClaim["Process Claim"]
-ProcessClaim --> CreateTx["Create Blockchain Transaction"]
-CreateTx --> StoreData["Store Claim Data"]
-StoreData --> Notify["Notify Stakeholders"]
-Notify --> Complete([Claim Submitted])
-Reject --> End([End])
-Complete --> End
+Start([Claim Submission]) --> MobileCheck["Mobile-First Interface"]
+MobileCheck --> SimpleForm["Simplified Form Input"]
+SimpleForm --> AutoValidate["Auto-Validation"]
+AutoValidate --> Submit["Submit Claim"]
+Submit --> Process["AI Processing"]
+Process --> Status["Real-time Status Updates"]
+Status --> Complete([Claim Submitted])
 ```
 
-**Updated** Added comprehensive troubleshooting tips for common submission errors and validation failures.
+**Updated** Enhanced with mobile-responsive design patterns and simplified user input methods for optimal mobile experience.
 
 **Diagram sources**
-- [backend/src/agents/fraud-check.ts](file://backend/src/agents/fraud-check.ts)
+- [frontend/src/components/MobileLayout.tsx](file://frontend/src/components/MobileLayout.tsx)
 - [backend/src/services/claim.service.ts](file://backend/src/services/claim.service.ts)
 
 ### 3. AI-Powered Claim Processing
@@ -244,7 +228,7 @@ Orchestrator --> FraudCheckAgent : "coordinates"
 Orchestrator --> ExternalDataAgent : "coordinates"
 ```
 
-**Updated** Enhanced with detailed monitoring capabilities and performance metrics for judge evaluation.
+**Updated** Maintained comprehensive AI processing capabilities while optimizing for the new session-based architecture.
 
 **Diagram sources**
 - [backend/src/services/orchestrator.ts](file://backend/src/services/orchestrator.ts)
@@ -262,7 +246,7 @@ participant Admin as "Admin"
 participant Backend as "Backend API"
 participant Settlement as "Settlement Contract"
 participant Escrow as "Escrow Contract"
-participant User as "User Wallet"
+participant User as "User Account"
 Admin->>Backend : Approve Claim
 Backend->>Settlement : Execute Settlement
 Settlement->>Escrow : Release Funds
@@ -271,7 +255,7 @@ User-->>Backend : Confirm Receipt
 Backend-->>Admin : Settlement Complete
 ```
 
-**Updated** Added comprehensive audit trail functionality for regulatory compliance and judge review.
+**Updated** Enhanced settlement process maintains blockchain security while supporting the new wallet-less user experience.
 
 **Diagram sources**
 - [contracts/insurix-settlement/sources/settlement.move](file://contracts/insurix-settlement/sources/settlement.move)
@@ -281,7 +265,7 @@ Backend-->>Admin : Settlement Complete
 
 ### Settlement Contract Architecture
 
-The settlement system is built on Move smart contracts that ensure trustless execution:
+The settlement system continues to leverage Move smart contracts for trustless execution while supporting the new frontend architecture:
 
 ```mermaid
 erDiagram
@@ -313,7 +297,7 @@ SETTLEMENT ||--o{ ESCROW : manages
 CLAIM ||--|| SETTLEMENT : triggers
 ```
 
-**Updated** Enhanced with additional audit fields and compliance tracking for regulatory requirements.
+**Updated** Smart contract architecture remains unchanged while frontend integration has been simplified for better user experience.
 
 **Diagram sources**
 - [contracts/insurix-settlement/sources/settlement.move](file://contracts/insurix-settlement/sources/settlement.move)
@@ -323,7 +307,7 @@ CLAIM ||--|| SETTLEMENT : triggers
 
 The platform uses standardized schemas for data consistency across the system:
 
-**Updated** Added comprehensive schema validation and migration support for evolving regulatory requirements.
+**Updated** Schema definitions continue to support both traditional and new session-based authentication flows.
 
 **Section sources**
 - [contracts/insurix-schemas/sources/lib.move](file://contracts/insurix-schemas/sources/lib.move)
@@ -333,9 +317,10 @@ The platform uses standardized schemas for data consistency across the system:
 ## API Endpoints Reference
 
 ### Authentication Endpoints
-- `POST /api/auth/register` - User registration with identity verification
-- `POST /api/auth/login` - Secure authentication with JWT tokens
-- `POST /api/auth/verify` - Token validation and refresh
+- `POST /api/auth/register` - User registration with session creation
+- `POST /api/auth/login` - Secure authentication with session tokens
+- `POST /api/auth/logout` - Session termination
+- `GET /api/auth/session` - Current session validation
 
 ### Claims Management
 - `POST /api/claims` - Submit new insurance claims
@@ -350,7 +335,7 @@ The platform uses standardized schemas for data consistency across the system:
 - `GET /api/admin/analytics` - System performance and usage statistics
 - `GET /api/admin/audit-trail` - Comprehensive audit logs for regulatory compliance
 
-**Updated** Added comprehensive audit trail endpoints for regulatory compliance and judge evaluation requirements.
+**Updated** Added session management endpoints and removed wallet-specific authentication endpoints.
 
 **Section sources**
 - [backend/src/routes/claims.ts](file://backend/src/routes/claims.ts)
@@ -360,39 +345,35 @@ The platform uses standardized schemas for data consistency across the system:
 
 ### Common Issues and Solutions
 
-**Local Network Connection Problems**
-- Ensure Sui localnet is running on port 9000
-- Verify wallet configuration in frontend settings
-- Check network connectivity and firewall settings
-- Restart services if ports are blocked by antivirus software
+**Session Management Problems**
+- Clear browser cookies and cache if experiencing login issues
+- Verify session timeout settings in backend configuration
+- Check CORS settings for cross-origin requests
+- Ensure proper session storage configuration
 
-**Smart Contract Deployment Failures**
-- Verify Move compiler version compatibility
-- Check gas budget settings for transactions
-- Ensure proper contract initialization parameters
-- Review deployment logs for specific error messages
+**Mobile Responsiveness Issues**
+- Test on multiple device sizes and screen orientations
+- Verify viewport meta tags and responsive CSS
+- Check touch event handling on mobile devices
+- Validate form inputs for mobile keyboard compatibility
 
-**AI Agent Processing Errors**
-- Review agent configuration and external API keys
-- Check rate limiting and quota restrictions
-- Monitor agent health and dependency services
-- Implement retry logic for transient failures
+**Local Development Setup**
+- Ensure Node.js version compatibility (18+)
+- Verify port availability for frontend and backend services
+- Check firewall settings for local development
+- Restart services if encountering connection issues
 
 **Performance Optimization Tips**
-- Enable Redis caching for frequently accessed data
-- Implement database query optimization
-- Use connection pooling for blockchain interactions
-- Monitor memory usage and garbage collection patterns
+- Enable browser caching for static assets
+- Implement lazy loading for mobile devices
+- Optimize images and media for mobile networks
+- Monitor bundle size for mobile performance
 
-**Judge Evaluation Specific Issues**
-- Verify audit trail completeness for all transactions
-- Check timestamp accuracy across all system components
-- Validate data integrity between frontend and backend
-- Ensure compliance with regulatory reporting requirements
+**Updated** Added troubleshooting guidance specific to the new session-based authentication and mobile-first architecture.
 
 **Section sources**
 - [backend/src/middleware/error-handler.ts](file://backend/src/middleware/error-handler.ts)
-- [backend/src/config/sui-client.ts](file://backend/src/config/sui-client.ts)
+- [frontend/src/components/MobileLayout.tsx](file://frontend/src/components/MobileLayout.tsx)
 
 ## Performance Considerations
 
@@ -400,28 +381,31 @@ The platform uses standardized schemas for data consistency across the system:
 The platform is designed with horizontal scalability in mind:
 
 - **Microservices Architecture**: Independent scaling of AI agents and API services
-- **Caching Strategy**: Multi-level caching with Redis and CDN integration
+- **Session Management**: Efficient session handling with Redis caching
 - **Database Optimization**: Read replicas and connection pooling
+- **Mobile Optimization**: Responsive design patterns and efficient asset delivery
 - **Blockchain Integration**: Batch transaction processing and gas optimization
 
 ### Monitoring and Metrics
 - Real-time performance monitoring with APM tools
 - Custom metrics for AI agent processing times
-- Blockchain transaction success rates and latency
-- User experience metrics and error tracking
+- Session management performance indicators
+- Mobile user experience metrics and error tracking
 - Regulatory compliance dashboards for audit purposes
 
-**Updated** Enhanced monitoring capabilities specifically designed for judge evaluation and regulatory compliance requirements.
+**Updated** Enhanced monitoring capabilities specifically designed for the new session-based architecture and mobile-first approach.
 
 ## Conclusion
 
-The Insurix platform represents a comprehensive solution for decentralized insurance automation, combining cutting-edge AI technology with blockchain security. The modular architecture allows for easy extension and customization while maintaining high performance and reliability standards.
+The Insurix platform represents a comprehensive solution for decentralized insurance automation, combining cutting-edge AI technology with blockchain security. The updated platform now offers a significantly improved user experience through its wallet-less flow and mobile-first design, making insurance claims processing more accessible and user-friendly.
 
-Key strengths of the platform include:
+Key strengths of the enhanced platform include:
+- **Simplified Authentication**: Session-based login eliminating wallet complexity
+- **Mobile-First Design**: Responsive interface optimized for all devices
 - **Trustless Settlement**: Blockchain-verified claim processing and payment execution
-- **AI-Powered Analysis**: Advanced fraud detection and risk assessment capabilities  
+- **AI-Powered Analysis**: Advanced fraud detection and risk assessment capabilities
 - **Scalable Architecture**: Microservices design supporting high-volume operations
 - **Developer-Friendly**: Comprehensive APIs and documentation for integration
-- **Regulatory Compliance**: Built-in audit trails and compliance reporting for judge evaluation
+- **Regulatory Compliance**: Built-in audit trails and compliance reporting
 
-This enhanced demo walkthrough provides a solid foundation for understanding and extending the Insurix platform for various insurance use cases and business requirements, with specific focus on judge evaluation workflows and regulatory compliance needs.
+This updated demo walkthrough provides a solid foundation for understanding and extending the Insurix platform with its new wallet-less flow and mobile-first approach, making it more accessible to users while maintaining the robust security and functionality of the underlying blockchain infrastructure.

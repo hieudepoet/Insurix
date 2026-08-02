@@ -1,1 +1,0 @@
-Next.js App Router frontend for Insurix providing a Three.js-powered marketing landing page, a Sui blockchain-connected claims dashboard, and an admin panel that communicates with the backend API.

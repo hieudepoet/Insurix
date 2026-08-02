@@ -1,5 +1,0 @@
-- Every script begins with `#requires -Version 5.1` and sets `$ErrorActionPreference = "Stop"` so failures abort immediately rather than continuing silently.
-- Each script uses a `<#.SYNOPSIS ... .DESCRIPTION #>` comment block documenting purpose, followed by a consistent `[N/M] Step name...` colored `Write-Host` banner for every phase.
-- External commands are invoked via `Start-Process` or direct invocation with explicit `-WorkingDirectory $ProjectRoot`, and stderr/stdout are redirected to `.project-root/.<service>-{stdout,stderr}.log` files for debugging.
-- Readiness checks use a retry loop with `Start-Sleep -Seconds N` and a bounded `$maxAttempts` counter against a known health endpoint (`/api/health` for backend, `sui client active-env` for localnet) before giving up.
-- Configuration is read from `.env` by line-by-line regex matching (e.g. `^BACKEND_PORT=(.+)$`) instead of using a dedicated parser, with sensible defaults when keys are absent.

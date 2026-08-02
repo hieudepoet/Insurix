@@ -3,11 +3,11 @@ schema_version: 1
 locale: en-US
 branch: master
 nodes_managed: true
-exported_at: "2026-08-02T14:12:00Z"
+exported_at: "2026-08-02T16:11:06Z"
 modules:
     "":
-        dir_name: Insurix Monorepo (Sui Claims Attestation Platform)
-        title: Insurix Monorepo (Sui Claims Attestation Platform)
+        dir_name: Insurix Monorepo Orchestrator
+        title: Insurix Monorepo Orchestrator
         scope:
             - .gitignore
             - pnpm-workspace.yaml
@@ -24,8 +24,8 @@ modules:
         depends_on: []
         related_to: []
     backend:
-        dir_name: Insurix Sui Claims Backend
-        title: Insurix Sui Claims Backend
+        dir_name: Insurix Claims Backend (Express + Sui Orchestration)
+        title: Insurix Claims Backend (Express + Sui Orchestration)
         scope:
             - backend/
         source_files: []
@@ -48,8 +48,8 @@ modules:
             - path: frontend
             - path: scripts
     frontend:
-        dir_name: Insurix Next.js Frontend (Landing, Claims Dashboard & Admin)
-        title: Insurix Next.js Frontend (Landing, Claims Dashboard & Admin)
+        dir_name: Insurix Next.js Frontend (Landing, Claims & Admin)
+        title: Insurix Next.js Frontend (Landing, Claims & Admin)
         scope:
             - frontend/
         source_files: []
