@@ -1,0 +1,1 @@
+PowerShell 5.1+ (`#requires -Version 5.1`), Sui CLI for local blockchain networking and Move package publishing, pnpm workspaces (`--filter backend|frontend`) for dependency management and dev server execution, Next.js frontend, and a Node.js backend exposing a REST API at `http://localhost:3001`.

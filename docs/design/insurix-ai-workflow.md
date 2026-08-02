@@ -1,5 +1,5 @@
 # Insurix — AI Agent Workflow & Sui Attestation Design
-### Tự động hóa xác thực & giải ngân bảo hiểm bằng AI Agent + Sui Attestation
+## Tự động hóa xác thực & giải ngân bảo hiểm bằng AI Agent + Sui Attestation
 
 *Bilingual design document (VI/EN) — mỗi mục có cả tiếng Việt và tiếng Anh, đặt cạnh nhau. / Every section carries both Vietnamese and English, side by side.*
 
@@ -172,6 +172,10 @@ sequenceDiagram
 ```
 
 ### 4.5 Giải ngân: crypto trong PoC, cash bridge ở Phase 2 / Payout: crypto in the PoC, cash bridge in Phase 2
+
+> **Phase boundary — ranh giới giai đoạn / Phase boundary:**
+> **VI:** Mọi thứ từ mục 4.1–4.4 thuộc phạm vi PoC (24h hackathon). Cash-out Agent, fiat bridge, VND payout ở bên dưới là Phase 2 — chỉ định nghĩa roadmap, chưa triển khai.
+> **EN:** Everything in sections 4.1–4.4 is in PoC scope (24h hackathon). The Cash-out Agent, fiat bridge, and VND payout below are Phase 2 — roadmap only, not implemented.
 
 **VI:** Quyết định thiết kế quan trọng cần nói rõ ngay từ đầu: **claimable package trong PoC là crypto, không phải cash.** `claim_settlement` chỉ giữ và trả `Coin<SUI>`/stablecoin testnet — đây là phần việc smart contract tự làm được ngay khi đủ attestation, không cần đối tác thanh toán hay giấy phép nào, và chứng minh trọn vẹn vòng lặp *attest → settle → payout*, kiểm tra được trực tiếp trên Sui Explorer.
 

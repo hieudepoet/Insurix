@@ -1,1 +1,0 @@
-Move on Sui blockchain using `std::internal::Permit` for type-gated authority, `sui::derived_object` for deterministic per-subject box addresses, `sui::display_registry` for append-only presentation templates, and `sui::balance::Balance<SUI>` for gas-efficient coin custody.

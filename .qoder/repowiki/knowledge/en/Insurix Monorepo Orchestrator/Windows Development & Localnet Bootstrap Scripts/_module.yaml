@@ -1,0 +1,14 @@
+schema_version: 1
+module_path: scripts
+title: Windows Development & Localnet Bootstrap Scripts
+scope:
+    - scripts/dev.ps1
+    - scripts/seed-demo.ps1
+    - scripts/start-backend.ps1
+    - scripts/start-frontend.ps1
+    - scripts/start-localnet.ps1
+source_files: []
+depends_on: []
+related_to:
+    - path: backend
+    - path: contracts

@@ -1,1 +1,0 @@
-Next.js 16.2.12 with React 19.2.4, TypeScript strict mode, Tailwind CSS v4 via `@tailwindcss/postcss`, Three.js + React Three Fiber/Drei/Postprocessing for 3D hero scenes, Framer Motion and GSAP for animations, Lenis for smooth scrolling, TanStack Query for data fetching, and `@mysten/dapp-kit` + `@mysten/sui` for wallet connection and blockchain interaction.

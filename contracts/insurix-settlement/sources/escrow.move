@@ -9,7 +9,33 @@ use sui::sui::SUI;
 use sui::balance::{Self, Balance};
 use sui::tx_context::{Self, TxContext};
 use sui::event;
-use insurix_settlement::events;
+
+// === Events ===
+// Event structs must live in the module that emits them (Sui Move rule), so
+// each source module in this package defines its own instead of sharing a
+// centralized `events` module.
+
+/// Emitted when an escrow is created for a claim.
+public struct EscrowCreated has copy, drop {
+    escrow_id: ID,
+    claim_id: ID,
+    amount: u64,
+    beneficiary: address,
+}
+
+/// Emitted when escrow funds are released to the beneficiary.
+public struct EscrowReleased has copy, drop {
+    escrow_id: ID,
+    claim_id: ID,
+    amount: u64,
+}
+
+/// Emitted when escrow funds are reclaimed by the admin (rejected claim).
+public struct EscrowReclaimed has copy, drop {
+    escrow_id: ID,
+    claim_id: ID,
+    amount: u64,
+}
 
 // === Status constants ===
 
@@ -45,7 +71,7 @@ public struct Escrow has key {
 
 /// Create an escrow by depositing SUI coins. The escrow is shared so the
 /// settlement module can later release or reclaim funds.
-entry public fun create_escrow(
+public fun create_escrow(
     claim_id: ID,
     coins: Coin<SUI>,
     beneficiary: address,
@@ -60,7 +86,7 @@ entry public fun create_escrow(
         beneficiary,
     };
     let escrow_id = object::id(&escrow);
-    event::emit(events::EscrowCreated {
+    event::emit(EscrowCreated {
         escrow_id,
         claim_id,
         amount,
@@ -76,9 +102,9 @@ public(package) fun release_funds(escrow: &mut Escrow, ctx: &mut TxContext) {
     assert!(escrow.status == STATUS_LOCKED, EEscrowNotLocked);
     let amount = balance::value(&escrow.balance);
     escrow.status = STATUS_RELEASED;
-    let coin = coin::from_balance(escrow.balance.extract_all(), ctx);
+    let coin = coin::from_balance(escrow.balance.withdraw_all(), ctx);
     transfer::public_transfer(coin, escrow.beneficiary);
-    event::emit(events::EscrowReleased {
+    event::emit(EscrowReleased {
         escrow_id: object::id(escrow),
         claim_id: escrow.claim_id,
         amount,
@@ -95,9 +121,9 @@ public(package) fun reclaim_funds(
     assert!(escrow.status == STATUS_LOCKED, EEscrowNotLocked);
     let amount = balance::value(&escrow.balance);
     escrow.status = STATUS_RECLAIMED;
-    let coin = coin::from_balance(escrow.balance.extract_all(), ctx);
+    let coin = coin::from_balance(escrow.balance.withdraw_all(), ctx);
     transfer::public_transfer(coin, admin);
-    event::emit(events::EscrowReclaimed {
+    event::emit(EscrowReclaimed {
         escrow_id: object::id(escrow),
         claim_id: escrow.claim_id,
         amount,

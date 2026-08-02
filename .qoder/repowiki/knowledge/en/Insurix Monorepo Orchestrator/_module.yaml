@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: Insurix Monorepo (Sui Insurance Attestation Platform)
+title: Insurix Monorepo Orchestrator
 scope:
     - .gitignore
     - pnpm-workspace.yaml

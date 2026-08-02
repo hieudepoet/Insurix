@@ -2,4 +2,4 @@
 - On-chain interactions follow a fixed pattern: build a `Transaction` with `tx.moveCall`, sign it with the agent-specific keypair from `config/keypairs.ts`, then execute via `suiClient.core.executeTransaction`.
 - Configuration is read exclusively from environment variables through `dotenv.config()` at module load time, with sensible defaults falling back to testnet values.
 - All asynchronous work is wrapped with a timeout guard using a shared `withTimeout` helper so no agent can hang indefinitely.
-- Logging uses bracketed agent labels (e.g. `[FraudCheckAgent]`, `[Orchestrator]`) consistently across every log line for traceability.
+- Logging uses bracketed agent labels (e.g. `[IdentityAgent]`, `[ExternalDataAgent]`, `[FraudCheckAgent]`, `[Orchestrator]`) consistently across every log line for traceability.

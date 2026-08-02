@@ -1,1 +1,0 @@
-Next.js 16 client-side frontend for Insurix, providing a Three.js-powered landing page and a claims dashboard that communicates with the backend API and interacts with the Sui blockchain via @mysten/dapp-kit.

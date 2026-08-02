@@ -102,11 +102,9 @@ fun try_settle_succeeds() {
     let claim_id = create_claim(&mut scenario);
     let _escrow_id = create_escrow_for(&mut scenario, claim_id, CLAIM_AMOUNT);
 
-    let balance_before = test_scenario::account_balance(ALICE);
-
     let mut claim_obj: Claim = scenario.take_shared();
     let mut escrow_obj: Escrow = scenario.take_shared();
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
 
     // Verify state transitions.
     assert!(claim::is_settled(&claim_obj));
@@ -119,22 +117,25 @@ fun try_settle_succeeds() {
     scenario.end();
 }
 
-/// After settlement, the beneficiary's SUI balance increases by the claim amount.
+/// After settlement, the beneficiary receives a `Coin<SUI>` for the full claim amount.
 #[test]
 fun try_settle_transfers_correct_amount() {
     let (mut scenario, cap) = begin();
     let claim_id = create_claim(&mut scenario);
     let _escrow_id = create_escrow_for(&mut scenario, claim_id, CLAIM_AMOUNT);
 
-    let balance_before = test_scenario::account_balance(ALICE);
-
     let mut claim_obj: Claim = scenario.take_shared();
     let mut escrow_obj: Escrow = scenario.take_shared();
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
 
-    let balance_after = test_scenario::account_balance(ALICE);
-    assert_eq!(balance_after, balance_before + CLAIM_AMOUNT);
+    // The payout coin lands in ALICE's inventory on the next transaction.
+    scenario.next_tx(ALICE);
+    let payout: coin::Coin<SUI> = test_scenario::take_from_address(&scenario, ALICE);
+    assert_eq!(coin::value(&payout), CLAIM_AMOUNT);
+    test_scenario::return_to_address(ALICE, payout);
 
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
     transfer::public_transfer(cap, ALICE);
     scenario.end();
 }
@@ -177,9 +178,9 @@ fun double_settle_aborts() {
     let mut escrow_obj: Escrow = scenario.take_shared();
 
     // First settle succeeds.
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Second settle aborts: claim is no longer pending.
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
 }
 
 // =====================================================================
@@ -193,8 +194,6 @@ fun reject_claim_succeeds() {
     let claim_id = create_claim(&mut scenario);
     let _escrow_id = create_escrow_for(&mut scenario, claim_id, CLAIM_AMOUNT);
 
-    let balance_before = test_scenario::account_balance(ALICE);
-
     let mut claim_obj: Claim = scenario.take_shared();
     let mut escrow_obj: Escrow = scenario.take_shared();
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, REASON_FRAUD, scenario.ctx());
@@ -205,9 +204,15 @@ fun reject_claim_succeeds() {
     assert_eq!(escrow::status(&escrow_obj), 2);
     assert_eq!(escrow::balance(&escrow_obj), 0);
 
-    // Admin (ALICE) received reclaimed funds.
-    let balance_after = test_scenario::account_balance(ALICE);
-    assert_eq!(balance_after, balance_before + CLAIM_AMOUNT);
+    // Admin (ALICE, ctx.sender() inside reject_claim) received reclaimed funds
+    // as a Coin<SUI>, available on the next transaction.
+    scenario.next_tx(ALICE);
+    let refund: coin::Coin<SUI> = test_scenario::take_from_address(&scenario, ALICE);
+    assert_eq!(coin::value(&refund), CLAIM_AMOUNT);
+    test_scenario::return_to_address(ALICE, refund);
+
+    test_scenario::return_shared(claim_obj);
+    test_scenario::return_shared(escrow_obj);
 
     transfer::public_transfer(cap, ALICE);
     scenario.end();
@@ -225,7 +230,7 @@ fun reject_after_settle_aborts() {
     let mut escrow_obj: Escrow = scenario.take_shared();
 
     // Settle first.
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Reject after settle aborts.
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, 1, scenario.ctx());
 }
@@ -244,7 +249,7 @@ fun settle_after_reject_aborts() {
     // Reject first.
     settlement::reject_claim(&cap, &mut claim_obj, &mut escrow_obj, 99, scenario.ctx());
     // Settle after reject aborts.
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
 }
 
 // =====================================================================
@@ -263,7 +268,7 @@ fun double_release_aborts() {
     let mut escrow_obj: Escrow = scenario.take_shared();
 
     // Release via settlement.
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
     // Direct release should abort (escrow no longer locked).
     escrow::release_funds(&mut escrow_obj, scenario.ctx());
 }
@@ -309,7 +314,7 @@ fun full_settlement_lifecycle() {
     // 3. Settle — transitions to settled/released.
     let mut claim_obj: Claim = scenario.take_shared();
     let mut escrow_obj: Escrow = scenario.take_shared();
-    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector::empty(), scenario.ctx());
+    settlement::try_settle(&cap, &mut claim_obj, &mut escrow_obj, vector[], scenario.ctx());
 
     // 4. Verify final states.
     assert!(claim::is_settled(&claim_obj));

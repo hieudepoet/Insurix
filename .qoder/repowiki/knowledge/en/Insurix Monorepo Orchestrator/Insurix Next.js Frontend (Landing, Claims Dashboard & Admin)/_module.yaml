@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: frontend
-title: Insurix Next.js Frontend (Landing & Claims UI)
+title: Insurix Next.js Frontend (Landing, Claims Dashboard & Admin)
 scope:
     - frontend/
 source_files: []

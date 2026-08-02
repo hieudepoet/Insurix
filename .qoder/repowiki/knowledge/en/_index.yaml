@@ -3,11 +3,11 @@ schema_version: 1
 locale: en-US
 branch: master
 nodes_managed: true
-exported_at: "2026-08-02T10:21:41Z"
+exported_at: "2026-08-02T13:17:24Z"
 modules:
     "":
-        dir_name: Insurix Monorepo (Sui Insurance Attestation Platform)
-        title: Insurix Monorepo (Sui Insurance Attestation Platform)
+        dir_name: Insurix Monorepo Orchestrator
+        title: Insurix Monorepo Orchestrator
         scope:
             - .gitignore
             - pnpm-workspace.yaml
@@ -20,11 +20,12 @@ modules:
             - backend
             - contracts
             - frontend
+            - scripts
         depends_on: []
         related_to: []
     backend:
-        dir_name: Insurix Sui Backend API & Verification Agents
-        title: Insurix Sui Backend API & Verification Agents
+        dir_name: Insurix Sui Claims Backend
+        title: Insurix Sui Claims Backend
         scope:
             - backend/
         source_files: []
@@ -33,9 +34,10 @@ modules:
         related_to:
             - path: contracts
             - path: frontend
+            - path: scripts
     contracts:
-        dir_name: Insurix On-Chain Attestations & Settlement Contracts
-        title: Insurix On-Chain Attestations & Settlement Contracts
+        dir_name: Insurix Attestation Registry & Settlement Contracts
+        title: Insurix Attestation Registry & Settlement Contracts
         scope:
             - contracts/
         source_files: []
@@ -44,11 +46,27 @@ modules:
         related_to:
             - path: backend
             - path: frontend
+            - path: scripts
     frontend:
-        dir_name: Insurix Next.js Frontend (Landing & Claims UI)
-        title: Insurix Next.js Frontend (Landing & Claims UI)
+        dir_name: Insurix Next.js Frontend (Landing, Claims Dashboard & Admin)
+        title: Insurix Next.js Frontend (Landing, Claims Dashboard & Admin)
         scope:
             - frontend/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: backend
+            - path: contracts
+    scripts:
+        dir_name: Windows Development & Localnet Bootstrap Scripts
+        title: Windows Development & Localnet Bootstrap Scripts
+        scope:
+            - scripts/dev.ps1
+            - scripts/seed-demo.ps1
+            - scripts/start-backend.ps1
+            - scripts/start-frontend.ps1
+            - scripts/start-localnet.ps1
         source_files: []
         children: []
         depends_on: []

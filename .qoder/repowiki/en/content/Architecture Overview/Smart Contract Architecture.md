@@ -31,6 +31,12 @@
 - [sui-client.ts (frontend lib)](file://frontend/src/lib/sui-client.ts)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated Move.toml configuration section for insurix-settlement package to reflect recent build configuration changes
+- Enhanced dependency management documentation to align with updated Move.toml settings
+- Improved build and deployment procedures section with current configuration details
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -305,12 +311,32 @@ Frontend["Frontend Sui Client"] --> Settlement
 - [Move.toml (attestations)](file://contracts/attestations/packages/attestations/Move.toml)
 - [Move.toml (settlement)](file://contracts/insurix-settlement/Move.toml)
 
+## Build Configuration and Dependencies
+
+### Move.toml Configuration Management
+Each Move package maintains its own Move.toml configuration file that defines package metadata, dependencies, and build settings. The insurix-settlement package configuration ensures proper alignment with the overall project build system.
+
+**Updated** Recent changes to the insurix-settlement/Move.toml configuration ensure compatibility with the latest Move compiler versions and optimize build performance.
+
+Key configuration elements typically include:
+- Package name and version specifications
+- Dependency declarations for other Move packages
+- Compiler settings and optimization flags
+- Test configuration and target specifications
+- Published package metadata for deployment
+
+**Section sources**
+- [Move.toml (settlement)](file://contracts/insurix-settlement/Move.toml)
+- [Move.toml (schemas)](file://contracts/insurix-schemas/Move.toml)
+- [Move.toml (attestations)](file://contracts/attestations/packages/attestations/Move.toml)
+
 ## Performance Considerations
 - Transaction batching: Group multiple claim operations in single transactions to reduce overhead
 - Gas optimization: Minimize storage footprint by using compact data structures and avoiding redundant fields
 - Event efficiency: Emit only essential events to reduce indexing costs
 - State management: Use capability tokens sparingly and prefer immutable references where possible
-- Network considerations: Leverage Sui’s parallel execution model by structuring transactions to avoid conflicts
+- Network considerations: Leverage Sui's parallel execution model by structuring transactions to avoid conflicts
+- Build optimization: Configure Move.toml settings for optimal compilation and deployment performance
 
 [No sources needed since this section provides general guidance]
 
@@ -320,11 +346,13 @@ Common issues and resolutions:
 - Schema validation failures: Verify field formats and required attributes before submission
 - Event indexing gaps: Confirm backend services are subscribed to correct event streams
 - Upgrade compatibility: Follow Move upgrade procedures and maintain Published.toml versions
+- Build configuration issues: Verify Move.toml settings match project requirements and compiler versions
 
 Debugging utilities:
 - Backend logging in orchestrator and service layers
 - Sui client error handling for network and transaction failures
 - Test suites for each package to validate edge cases
+- Move compiler diagnostics for configuration problems
 
 **Section sources**
 - [attestation.service.ts](file://backend/src/services/attestation.service.ts)
@@ -334,7 +362,7 @@ Debugging utilities:
 - [Published.toml (attestations)](file://contracts/attestations/packages/attestations/Published.toml)
 
 ## Conclusion
-The Insurix smart contract architecture demonstrates a robust, modular design leveraging Move’s resource model and capability patterns. The separation of concerns across attestations, schemas, and settlement packages enables scalability and maintainability. By following the documented best practices for gas optimization, testing, and upgrades, developers can build reliable insurance workflows on the Sui blockchain.
+The Insurix smart contract architecture demonstrates a robust, modular design leveraging Move's resource model and capability patterns. The separation of concerns across attestations, schemas, and settlement packages enables scalability and maintainability. By following the documented best practices for gas optimization, testing, and upgrades, developers can build reliable insurance workflows on the Sui blockchain.
 
 [No sources needed since this section summarizes without analyzing specific files]
 
@@ -355,7 +383,7 @@ The Insurix smart contract architecture demonstrates a robust, modular design le
 
 ### Upgrade Procedures
 - Maintain backward compatibility when modifying schemas
-- Use Move’s upgrade mechanism with proper admin capabilities
+- Use Move's upgrade mechanism with proper admin capabilities
 - Update Published.toml versions and communicate changes to stakeholders
 
 **Section sources**
@@ -377,8 +405,19 @@ The Insurix smart contract architecture demonstrates a robust, modular design le
 
 ### Blockchain-Specific Considerations
 - Transaction batching: Combine related operations to optimize gas usage
-- Block finality: Account for Sui’s fast finality in UI state management
+- Block finality: Account for Sui's fast finality in UI state management
 - Network consensus: Design for high throughput and low latency environments
-- Resource ownership: Leverage Move’s ownership model for secure asset management
+- Resource ownership: Leverage Move's ownership model for secure asset management
 
 [No sources needed since this section provides general guidance]
+
+### Build and Deployment Configuration
+- Move.toml files define package metadata, dependencies, and build settings
+- Consistent configuration across packages ensures smooth deployment workflows
+- Version pinning prevents unexpected dependency updates
+- Environment-specific configurations support development, staging, and production deployments
+
+**Section sources**
+- [Move.toml (settlement)](file://contracts/insurix-settlement/Move.toml)
+- [Move.toml (schemas)](file://contracts/insurix-schemas/Move.toml)
+- [Move.toml (attestations)](file://contracts/attestations/packages/attestations/Move.toml)

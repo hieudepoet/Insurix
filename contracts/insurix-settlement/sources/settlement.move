@@ -20,7 +20,24 @@ use sui::tx_context::{Self, TxContext};
 use sui::event;
 use insurix_settlement::claim::{Self, Claim};
 use insurix_settlement::escrow::{Self, Escrow};
-use insurix_settlement::events;
+
+// === Events ===
+// Event structs must live in the module that emits them (Sui Move rule), so
+// each source module in this package defines its own instead of sharing a
+// centralized `events` module.
+
+/// Emitted when a claim is settled and escrow released.
+public struct ClaimSettled has copy, drop {
+    claim_id: ID,
+    beneficiary: address,
+    amount: u64,
+}
+
+/// Emitted when a claim is rejected.
+public struct ClaimRejected has copy, drop {
+    claim_id: ID,
+    reason: u64,
+}
 
 // === Error codes ===
 
@@ -58,7 +75,7 @@ fun init(ctx: &mut TxContext) {
 ///
 /// The `attestation_ids` vector records those attestation IDs for on-chain
 /// traceability (indexers can cross-reference with the attestations registry).
-entry public fun try_settle(
+public fun try_settle(
     _admin_cap: &SettlementAdminCap,
     claim: &mut Claim,
     escrow: &mut Escrow,
@@ -70,7 +87,7 @@ entry public fun try_settle(
     claim::mark_settled(claim);
     escrow::release_funds(escrow, ctx);
 
-    event::emit(events::ClaimSettled {
+    event::emit(ClaimSettled {
         claim_id: object::id(claim),
         beneficiary: claim::owner(claim),
         amount: claim::amount(claim),
@@ -86,7 +103,7 @@ entry public fun try_settle(
 ///
 /// The admin cap holder is trusted to have determined (via off-chain checks,
 /// fraud detection, or policy rules) that the claim should not be paid.
-entry public fun reject_claim(
+public fun reject_claim(
     _admin_cap: &SettlementAdminCap,
     claim: &mut Claim,
     escrow: &mut Escrow,
@@ -98,7 +115,7 @@ entry public fun reject_claim(
     claim::mark_rejected(claim);
     escrow::reclaim_funds(escrow, ctx.sender(), ctx);
 
-    event::emit(events::ClaimRejected {
+    event::emit(ClaimRejected {
         claim_id: object::id(claim),
         reason,
     });

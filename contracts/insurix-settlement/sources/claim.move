@@ -5,7 +5,19 @@ module insurix_settlement::claim;
 use sui::object::{Self, UID, ID};
 use sui::tx_context::{Self, TxContext};
 use sui::event;
-use insurix_settlement::events;
+
+// === Events ===
+// Event structs must live in the module that emits them (Sui Move rule), so
+// each source module in this package defines its own instead of sharing a
+// centralized `events` module.
+
+/// Emitted when a new claim is created.
+public struct ClaimCreated has copy, drop {
+    claim_id: ID,
+    owner: address,
+    amount: u64,
+    product_type: u8,
+}
 
 // === Status constants ===
 
@@ -22,6 +34,11 @@ const STATUS_REJECTED: u8 = 2;
 const PRODUCT_FLIGHT_DELAY: u8 = 0;
 /// Heavy rain (weather) insurance product.
 const PRODUCT_HEAVY_RAIN: u8 = 1;
+
+// === Error codes ===
+
+/// `product_type` is not one of the known PRODUCT_* constants.
+const EInvalidProductType: u64 = 0;
 
 // === Claim object ===
 
@@ -43,21 +60,25 @@ public struct Claim has key {
 // === Entry functions ===
 
 /// Create a new claim and share it so the settlement admin can access it.
-entry public fun create_claim(
+public fun create_claim(
     amount: u64,
     product_type: u8,
     ctx: &mut TxContext,
 ) {
+    assert!(
+        product_type == PRODUCT_FLIGHT_DELAY || product_type == PRODUCT_HEAVY_RAIN,
+        EInvalidProductType,
+    );
     let owner = ctx.sender();
     let claim = Claim {
         id: object::new(ctx),
         owner,
         amount,
         product_type,
-        created_at_ms: ctx.epoch_start_timestamp_ms(),
+        created_at_ms: ctx.epoch_timestamp_ms(),
         status: STATUS_PENDING,
     };
-    event::emit(events::ClaimCreated {
+    event::emit(ClaimCreated {
         claim_id: object::id(&claim),
         owner,
         amount,
