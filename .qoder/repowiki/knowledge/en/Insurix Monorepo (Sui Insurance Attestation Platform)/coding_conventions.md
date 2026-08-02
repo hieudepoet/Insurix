@@ -1,0 +1,3 @@
+- Environment variables are centralized in `.env.example` and consumed by both backend and frontend via standard `process.env` / `NEXT_PUBLIC_` prefixes.
+- Each workspace package exposes its own `dev`, `build`, `test`, and `lint` scripts so root-level `pnpm -r` commands work uniformly.
+- Cross-layer communication is strictly typed through the Move contract schema definitions referenced by both backend agents and frontend dApp-kit interactions.

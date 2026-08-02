@@ -1,0 +1,1 @@
+Move-based Sui contracts implementing a generic attestation registry with typed payloads, three Insurix schema modules (identity, external data, fraud), and an insurance claim settlement flow using escrowed SUI.

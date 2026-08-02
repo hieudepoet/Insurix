@@ -1,0 +1,6 @@
+The module is a TypeScript/Node.js Express server (`src/index.ts`) configured with CORS, JSON parsing, and a global error handler. It follows a layered layout:
+- `config/` provides shared runtime configuration: `sui-client.ts` exports a single `SuiGrpcClient` instance plus contract IDs loaded from `.env`; `keypairs.ts` supplies per-agent signing keypairs.
+- `agents/` contains three independent verification modules (`identity.ts`, `external-data.ts`, `fraud-check.ts`) each exporting a single function returning a uniform `{ success, txDigest?, error? }` shape and building/signing/executing Sui transactions via the shared client.
+- `services/orchestrator.ts` runs all three agents in parallel with `Promise.allSettled` and a 30s timeout guard (`withTimeout`), logging outcomes without awaiting completion (fire-and-forget).
+- `middleware/` holds reusable Express middleware: `auth.ts` enforces an admin API key via `x-api-key` header, and `error-handler.ts` centralizes error responses.
+Dependency direction is strictly one-way: index → services → agents → config; agents never import back into services or middleware.

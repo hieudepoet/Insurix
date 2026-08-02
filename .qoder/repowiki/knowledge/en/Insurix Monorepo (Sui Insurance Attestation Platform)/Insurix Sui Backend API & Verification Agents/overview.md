@@ -1,0 +1,1 @@
+Express-based Node.js backend that exposes a health endpoint and orchestrates three parallel on-chain verification agents (identity, external-data, fraud-check) against the Sui blockchain to issue attestations for insurance claims.

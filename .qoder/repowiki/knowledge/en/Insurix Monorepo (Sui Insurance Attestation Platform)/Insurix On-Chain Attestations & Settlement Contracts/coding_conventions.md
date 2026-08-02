@@ -1,0 +1,6 @@
+- Every schema defines a `has key, store` admin capability struct minted in `init` and transferred to `ctx.sender()`, then used to gate both `attest_*` and `revoke_*` entry functions.
+- Schema-level `register_display` calls use `internal::permit<T>()` to register an append-only `Display<Attestation<T>>` whose template strings reference `{data.<field>}` paths into the payload struct.
+- All public entry functions accept `TxContext` as the last parameter and emit domain-specific events via `sui::event::emit` immediately after state mutations.
+- Test-only helpers are exposed behind `#[test_only]` attributes (e.g. `new_*_cap_for_testing`, `borrow_for_testing`, `put_back_for_testing`) rather than conditional compilation flags.
+- Status transitions use small unsigned integer constants (`STATUS_PENDING`, `STATUS_SETTLED`, etc.) paired with `is_*` predicate getters and `public(package)` mutators so only sibling modules within the same package can change state.
+- Error codes are declared as `const E*Name: u64 = N` at the top of each module and checked via `assert!(condition, E*Name)`.

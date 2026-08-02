@@ -1,0 +1,57 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: master
+nodes_managed: true
+exported_at: "2026-08-02T10:21:41Z"
+modules:
+    "":
+        dir_name: Insurix Monorepo (Sui Insurance Attestation Platform)
+        title: Insurix Monorepo (Sui Insurance Attestation Platform)
+        scope:
+            - .gitignore
+            - pnpm-workspace.yaml
+            - package.json
+            - pnpm-lock.yaml
+            - .env.example
+            - .gitmodules
+        source_files: []
+        children:
+            - backend
+            - contracts
+            - frontend
+        depends_on: []
+        related_to: []
+    backend:
+        dir_name: Insurix Sui Backend API & Verification Agents
+        title: Insurix Sui Backend API & Verification Agents
+        scope:
+            - backend/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: contracts
+            - path: frontend
+    contracts:
+        dir_name: Insurix On-Chain Attestations & Settlement Contracts
+        title: Insurix On-Chain Attestations & Settlement Contracts
+        scope:
+            - contracts/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: backend
+            - path: frontend
+    frontend:
+        dir_name: Insurix Next.js Frontend (Landing & Claims UI)
+        title: Insurix Next.js Frontend (Landing & Claims UI)
+        scope:
+            - frontend/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: backend
+            - path: contracts

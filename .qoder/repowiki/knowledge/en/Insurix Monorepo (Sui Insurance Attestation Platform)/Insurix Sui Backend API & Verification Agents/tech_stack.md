@@ -1,0 +1,1 @@
+TypeScript (ES2022 target, NodeNext modules) compiled by `tsc` and run via `tsx watch` in development. HTTP layer uses Express 4 with CORS. On-chain interaction uses `@mysten/sui` (SuiGrpcClient) to call Move contracts. Cryptographic hashing via `@noble/hashes`. Testing with Vitest, linting with ESLint.

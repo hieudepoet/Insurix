@@ -1,0 +1,1 @@
+Run development with `npm run dev` (tsx watch). Build with `npm run build` producing `dist/`. Start production with `npm start`. Tests via `npm test` / `npm run test:watch`. Requires a `.env` file defining `SUI_NETWORK`, `SUI_RPC_URL`, `ADMIN_API_KEY`, and all `*_PKG_ID` / `*_CAP_ID` contract addresses referenced in `config/sui-client.ts`.

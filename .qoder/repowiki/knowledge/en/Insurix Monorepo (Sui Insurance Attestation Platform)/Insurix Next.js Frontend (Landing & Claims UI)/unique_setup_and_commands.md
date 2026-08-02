@@ -1,0 +1,1 @@
+Run with `pnpm dev` / `pnpm build` / `pnpm start` as defined in `package.json`. Requires `NEXT_PUBLIC_BACKEND_URL` (defaults to `http://localhost:3001`) and `NEXT_PUBLIC_SUI_NETWORK` (`testnet` or `mainnet`) environment variables. Uses pnpm workspaces (`pnpm-workspace.yaml`).
