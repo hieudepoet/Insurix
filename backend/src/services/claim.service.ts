@@ -8,6 +8,13 @@ import { suiClient, CONTRACTS } from '../config/sui-client.js';
 import { getAttestationStatus, type AttestationStatus } from './attestation.service.js';
 import { processClaim } from './orchestrator.js';
 
+// PoC mode: when contracts are not fully configured, skip all on-chain queries
+// and rely on in-memory claim/attestation tracking.
+const POC_MODE =
+  process.env.POC_MODE === 'true' ||
+  !CONTRACTS.REGISTRY_ID ||
+  !CONTRACTS.ATTESTATIONS_PKG_ID;
+
 // ─── Types ────────────────────────────────────────────────────────
 
 export interface ClaimDetail {
@@ -175,8 +182,8 @@ export async function settleClaim(claimId: string): Promise<SettleResult> {
 
   console.log(`[ClaimService] Attempting settlement for claim ${claimId}`);
 
-  // In PoC mode (no registry configured), use the in-memory attestation status
-  if (!CONTRACTS.REGISTRY_ID) {
+  // In PoC mode (contracts not fully configured), use the in-memory attestation status
+  if (POC_MODE) {
     const allPresent =
       claim.attestationStatus.IdentityVerified &&
       claim.attestationStatus.ExternalDataVerified &&
@@ -264,25 +271,31 @@ export async function getClaimStatus(claimId: string): Promise<ClaimDetail> {
     throw new Error(`Claim ${claimId} not found`);
   }
 
-  // Refresh attestation status from chain if registry is configured
-  if (CONTRACTS.REGISTRY_ID) {
-    try {
-      const attStatus = await getAttestationStatus(claim.subjectId);
-      claim.attestationStatus = attStatus;
+  // In PoC mode, return the in-memory status directly — do NOT query the chain.
+  // The mock auto-verify (setTimeout) sets attestation booleans and status on the
+  // in-memory claim object; querying the chain would overwrite them back to false
+  // because the agents may not have successfully issued on-chain attestations.
+  if (POC_MODE) {
+    return { ...claim };
+  }
 
-      // Update claim status based on attestation state
-      const allPresent =
-        attStatus.IdentityVerified &&
-        attStatus.ExternalDataVerified &&
-        attStatus.FraudCheckPassed;
+  // Full on-chain mode: refresh attestation status from chain
+  try {
+    const attStatus = await getAttestationStatus(claim.subjectId);
+    claim.attestationStatus = attStatus;
 
-      if (allPresent && claim.status === 'attesting') {
-        claim.status = 'ready_to_settle';
-      }
-    } catch {
-      // Chain query failed — return cached status
-      console.warn(`[ClaimService] Could not refresh attestation status for ${claimId}`);
+    // Update claim status based on attestation state
+    const allPresent =
+      attStatus.IdentityVerified &&
+      attStatus.ExternalDataVerified &&
+      attStatus.FraudCheckPassed;
+
+    if (allPresent && claim.status === 'attesting') {
+      claim.status = 'ready_to_settle';
     }
+  } catch {
+    // Chain query failed — return cached status
+    console.warn(`[ClaimService] Could not refresh attestation status for ${claimId}`);
   }
 
   return { ...claim };

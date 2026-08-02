@@ -15,10 +15,14 @@ interface VerifyResult {
 
 // ─── Configuration ────────────────────────────────────────────────
 
-const POLICY_LIMIT_SUI = 10;         // max claim in SUI for PoC
+const POLICY_LIMIT_SUI = 10;         // max claim in SUI for strict mode
 const HIGH_AMOUNT_THRESHOLD_SUI = 5; // above this, deduct confidence points
 const PASS_THRESHOLD = 50;           // score must be > 50 to pass
 const DEDUCTION_HIGH_AMOUNT = 20;
+
+// When FRAUD_CHECK_STRICT is not explicitly 'true', the policy-limit rule is
+// skipped so that demo/PoC claims of any amount pass fraud detection.
+const FRAUD_CHECK_STRICT = process.env.FRAUD_CHECK_STRICT === 'true';
 
 // Hardcoded blocklist (empty for PoC)
 const BLOCKLIST: Set<string> = new Set();
@@ -43,11 +47,13 @@ function evaluateRules(
   let score = 100;
   let allPassed = true;
 
-  // Rule 1: Claim amount within policy limit (≤ 10 SUI)
-  if (claimAmount > POLICY_LIMIT_SUI) {
+  // Rule 1: Claim amount within policy limit (≤ 10 SUI) — only enforced in strict mode
+  if (FRAUD_CHECK_STRICT && claimAmount > POLICY_LIMIT_SUI) {
     log.push(`[FAIL] Claim amount ${claimAmount} SUI exceeds policy limit of ${POLICY_LIMIT_SUI} SUI`);
     allPassed = false;
     score = 0;
+  } else if (!FRAUD_CHECK_STRICT) {
+    log.push(`[SKIP] Policy limit check disabled (FRAUD_CHECK_STRICT != true) — amount ${claimAmount} SUI auto-passed`);
   } else {
     log.push(`[PASS] Claim amount ${claimAmount} SUI within policy limit`);
   }
