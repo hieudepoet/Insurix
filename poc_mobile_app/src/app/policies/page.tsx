@@ -55,17 +55,35 @@ export default function PoliciesPage() {
         <h2 className="text-[12px] font-bold text-[var(--color-slate)] uppercase tracking-wide">
           Explore more coverage
         </h2>
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4">
+        <div className="flex gap-2.5 overflow-x-auto hide-scrollbar -mx-4 px-4 pt-2">
           {INSURANCE_CATEGORIES.map((cat) => (
             <button
               key={cat.id}
-              className={`shrink-0 w-[84px] rounded-[14px] ${GLASS} px-2.5 py-2.5 flex flex-col items-center gap-1.5 active:scale-95 transition-transform`}
+              className={`relative shrink-0 w-[156px] rounded-[18px] ${GLASS} p-3 flex flex-col items-start gap-2 text-left active:scale-95 transition-transform`}
             >
-              <div className="w-8 h-8 rounded-full bg-[rgba(212,175,55,0.14)] flex items-center justify-center text-[var(--color-gold)]">
+              {cat.badge && (
+                <span
+                  className="absolute -top-2 -right-2 px-2.5 h-6 rounded-full text-[9.5px] font-bold text-white inline-flex items-center whitespace-nowrap"
+                  style={{ background: cat.color, boxShadow: `0 4px 12px ${cat.color}55` }}
+                >
+                  {cat.badge}
+                </span>
+              )}
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: `${cat.color}22`, color: cat.color }}
+              >
                 <CategoryIcon id={cat.id} />
               </div>
-              <p className="text-[10.5px] font-bold text-[var(--color-ink)]">{cat.name}</p>
-              <p className="text-[8.5px] text-[var(--color-slate)]">{cat.from}</p>
+              <div>
+                <p className="text-[13px] font-bold text-[var(--color-ink)]">{cat.name}</p>
+                <p className="text-[9.5px] text-[var(--color-slate)] leading-snug mt-1 line-clamp-2">
+                  {cat.description}
+                </p>
+              </div>
+              <p className="text-[11px] font-bold" style={{ color: cat.color }}>
+                From {cat.from}
+              </p>
             </button>
           ))}
         </div>

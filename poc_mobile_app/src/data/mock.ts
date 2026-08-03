@@ -65,20 +65,70 @@ const CHECKPOINT_NARRATIVE: Record<CheckpointId, string> = {
 export interface InsuranceCategory {
   id: string;
   name: string;
+  description: string;
   from: string;
+  /** Promo/status tag shown as a larger badge on the card — e.g. a limited-time discount or a popularity signal. */
+  badge?: string;
+  /** This category's own accent color — a scoped exception to the app's gold/dark system so each coverage type reads distinctly, the way real insurance marketplaces color-code categories. */
+  color: string;
 }
 
 // Browsable coverage categories — mock/inert (no purchase flow), shown on
 // the Policies hub so the app reads as a full insurance product line rather
 // than the two owned, claimable policies alone.
 export const INSURANCE_CATEGORIES: InsuranceCategory[] = [
-  { id: "health", name: "Health", from: "$12/mo" },
-  { id: "motor", name: "Motor", from: "$18/mo" },
-  { id: "home", name: "Home", from: "$9/mo" },
-  { id: "life", name: "Life", from: "$15/mo" },
-  { id: "gadget", name: "Gadget", from: "$4/mo" },
-  { id: "pet", name: "Pet", from: "$7/mo" },
-  { id: "business", name: "Business", from: "$25/mo" },
+  {
+    id: "health",
+    name: "Health",
+    description: "Hospital stays, outpatient visits & prescription cover",
+    from: "$12/mo",
+    badge: "Popular",
+    color: "#f43f5e",
+  },
+  {
+    id: "motor",
+    name: "Motor",
+    description: "Accident, theft & third-party liability for your vehicle",
+    from: "$18/mo",
+    color: "#3b82f6",
+  },
+  {
+    id: "home",
+    name: "Home",
+    description: "Fire, flood & burglary protection for renters and owners",
+    from: "$9/mo",
+    badge: "Save 15%",
+    color: "#f59e0b",
+  },
+  {
+    id: "life",
+    name: "Life",
+    description: "Term life cover that protects your family's income",
+    from: "$15/mo",
+    color: "#14b8a6",
+  },
+  {
+    id: "gadget",
+    name: "Gadget",
+    description: "Cracked screens, water damage & theft for phones & laptops",
+    from: "$4/mo",
+    badge: "New",
+    color: "#06b6d4",
+  },
+  {
+    id: "pet",
+    name: "Pet",
+    description: "Vet bills, surgery & emergency care for cats and dogs",
+    from: "$7/mo",
+    color: "#22c55e",
+  },
+  {
+    id: "business",
+    name: "Business",
+    description: "Liability, property & equipment cover for small teams",
+    from: "$25/mo",
+    color: "#78716c",
+  },
 ];
 
 export interface Bill {
