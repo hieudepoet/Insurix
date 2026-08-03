@@ -2,6 +2,7 @@ import { StatusBar } from "@/components/StatusBar";
 import { BottomNav } from "@/components/BottomNav";
 import { LightfallBackground } from "@/components/LightfallBackground";
 import { AudioUnlocker } from "@/components/AudioUnlocker";
+import { TouchCursor } from "@/components/TouchCursor";
 
 export function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
           </main>
           <BottomNav />
         </div>
+        <TouchCursor />
       </div>
     </div>
   );
