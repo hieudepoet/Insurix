@@ -13,6 +13,8 @@ export interface CheckpointRecord {
   id: CheckpointId;
   title: string;
   description: string;
+  /** Longer, technical explanation of what this checkpoint actually does and why it can't be gamed — shown on the processing screen. */
+  narrative: string;
   state: CheckpointState;
   attestationId?: string;
   verifiedAt?: string;
@@ -41,10 +43,55 @@ export interface Claim {
   createdAt: string;
   settledAt?: string;
   rejectionReason?: string;
+  /** Guidance shown on a rejected claim: what the checkpoint failure means and what the user can actually do about it. */
+  remediation?: string;
   failedCheckpoint?: CheckpointId;
   checkpoints: CheckpointRecord[];
   eventSummary: { label: string; value: string }[];
 }
+
+// The technical "why" behind each checkpoint — generic to the checkpoint
+// type, not the individual claim. Shown on the processing screen so the
+// verification sequence reads as a real audit trail, not a spinner.
+const CHECKPOINT_NARRATIVE: Record<CheckpointId, string> = {
+  identity:
+    "Every Insurix policyholder verifies their identity once, at onboarding. This checkpoint doesn't re-run that process — it confirms this claim's signer matches that original attestation and hasn't been revoked, so a claim can only ever be filed by the policyholder it names.",
+  externalData:
+    "This is the checkpoint that keeps the claim honest. It queries a data source neither the policyholder nor Insurix controls — aviation records or a weather station reading — and compares it against your policy's trigger threshold. Self-reported numbers are never used; if the source doesn't independently confirm the event, this checkpoint fails regardless of what the claim form says.",
+  fraudCheck:
+    "A rules engine checks this claim against recent activity on the same policy — duplicate submissions, blocklisted accounts, and known abuse patterns — before any funds move. It's the last gate before settlement, and the one most likely to catch a claim that looks legitimate on paper but isn't.",
+};
+
+export interface InsuranceCategory {
+  id: string;
+  name: string;
+  from: string;
+}
+
+// Browsable coverage categories — mock/inert (no purchase flow), shown on
+// the Policies hub so the app reads as a full insurance product line rather
+// than the two owned, claimable policies alone.
+export const INSURANCE_CATEGORIES: InsuranceCategory[] = [
+  { id: "health", name: "Health", from: "$12/mo" },
+  { id: "motor", name: "Motor", from: "$18/mo" },
+  { id: "home", name: "Home", from: "$9/mo" },
+  { id: "life", name: "Life", from: "$15/mo" },
+  { id: "gadget", name: "Gadget", from: "$4/mo" },
+  { id: "pet", name: "Pet", from: "$7/mo" },
+  { id: "business", name: "Business", from: "$25/mo" },
+];
+
+export interface Bill {
+  id: string;
+  policyName: string;
+  amountUsd: number;
+  dueDate: string;
+}
+
+export const BILLS: Bill[] = [
+  { id: "bill-1", policyName: "Flight Delay Shield", amountUsd: 14, dueDate: "Aug 15" },
+  { id: "bill-2", policyName: "Heavy Rain Cover", amountUsd: 9, dueDate: "Aug 22" },
+];
 
 export const POLICIES: Policy[] = [
   {
@@ -75,18 +122,21 @@ function baseCheckpoints(): CheckpointRecord[] {
       id: "identity",
       title: "Identity",
       description: "Confirms the claim belongs to the verified policyholder",
+      narrative: CHECKPOINT_NARRATIVE.identity,
       state: "pending",
     },
     {
       id: "externalData",
       title: "External Data",
       description: "Confirms the triggering event against an independent data source",
+      narrative: CHECKPOINT_NARRATIVE.externalData,
       state: "pending",
     },
     {
       id: "fraudCheck",
       title: "Fraud Check",
       description: "Screens the claim for duplicate or suspicious patterns",
+      narrative: CHECKPOINT_NARRATIVE.fraudCheck,
       state: "pending",
     },
   ];
@@ -123,6 +173,15 @@ export const SCENARIO_FAILURE: Claim = {
   amountUsd: 180,
   status: "pending",
   createdAt: new Date().toISOString(),
+  // Scripted for the demo: identity and external data both check out for
+  // real, but the fraud checkpoint is scripted to catch a duplicate-claim
+  // pattern. ProcessingClient reads this field to decide which checkpoint
+  // to fail live — `status` stays "pending" until it actually resolves.
+  failedCheckpoint: "fraudCheck",
+  rejectionReason:
+    "A claim referencing this same policy window was already attested 3h 12m earlier.",
+  remediation:
+    "If you believe this is a mistake, file an appeal with supporting evidence (boarding pass, a second policy reference) — appeals are reviewed within 24 hours. Don't resubmit the same claim in the meantime; a duplicate submission restarts the review window instead of speeding it up.",
   checkpoints: baseCheckpoints(),
   eventSummary: [
     { label: "Location", value: "Da Nang, VN" },
@@ -148,6 +207,7 @@ export const HISTORY_SETTLED: Claim = {
       id: "identity",
       title: "Identity",
       description: "Confirms the claim belongs to the verified policyholder",
+      narrative: CHECKPOINT_NARRATIVE.identity,
       state: "verified",
       attestationId: "att_id_4f9a2c",
       verifiedAt: "2026-07-29T09:12:14.000Z",
@@ -157,6 +217,7 @@ export const HISTORY_SETTLED: Claim = {
       id: "externalData",
       title: "External Data",
       description: "Confirms the triggering event against an independent data source",
+      narrative: CHECKPOINT_NARRATIVE.externalData,
       state: "verified",
       attestationId: "att_ext_7be013",
       verifiedAt: "2026-07-29T09:12:27.000Z",
@@ -166,6 +227,7 @@ export const HISTORY_SETTLED: Claim = {
       id: "fraudCheck",
       title: "Fraud Check",
       description: "Screens the claim for duplicate or suspicious patterns",
+      narrative: CHECKPOINT_NARRATIVE.fraudCheck,
       state: "verified",
       attestationId: "att_frd_c02e91",
       verifiedAt: "2026-07-29T09:12:41.000Z",
@@ -190,11 +252,14 @@ export const HISTORY_REJECTED: Claim = {
   failedCheckpoint: "fraudCheck",
   rejectionReason:
     "A claim referencing this same policy window was already attested 3h 12m earlier.",
+  remediation:
+    "If you believe this is a mistake, file an appeal with supporting evidence (boarding pass, a second policy reference) — appeals are reviewed within 24 hours. Don't resubmit the same claim in the meantime; a duplicate submission restarts the review window instead of speeding it up.",
   checkpoints: [
     {
       id: "identity",
       title: "Identity",
       description: "Confirms the claim belongs to the verified policyholder",
+      narrative: CHECKPOINT_NARRATIVE.identity,
       state: "verified",
       attestationId: "att_id_1a77bd",
       verifiedAt: "2026-07-22T16:04:11.000Z",
@@ -204,6 +269,7 @@ export const HISTORY_REJECTED: Claim = {
       id: "externalData",
       title: "External Data",
       description: "Confirms the triggering event against an independent data source",
+      narrative: CHECKPOINT_NARRATIVE.externalData,
       state: "verified",
       attestationId: "att_ext_99dc42",
       verifiedAt: "2026-07-22T16:04:24.000Z",
@@ -213,6 +279,7 @@ export const HISTORY_REJECTED: Claim = {
       id: "fraudCheck",
       title: "Fraud Check",
       description: "Screens the claim for duplicate or suspicious patterns",
+      narrative: CHECKPOINT_NARRATIVE.fraudCheck,
       state: "failed",
       verifiedAt: "2026-07-22T16:04:31.000Z",
       detail: "Duplicate claim window detected · score 0/100",
@@ -255,4 +322,16 @@ export function formatDate(iso: string): string {
 
 export function shortHash(id: string): string {
   return `0x${id.replace(/[^a-z0-9]/gi, "").padEnd(12, "0").slice(0, 12)}…`;
+}
+
+const HEX = "0123456789abcdef";
+
+export function randomAttestationId(prefix: string): string {
+  let hex = "";
+  for (let i = 0; i < 6; i++) hex += HEX[Math.floor(Math.random() * 16)];
+  return `att_${prefix}_${hex}`;
+}
+
+export function nowLabel(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
