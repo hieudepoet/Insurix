@@ -23,7 +23,7 @@ function scallopedPath(r: number, bumps: number, depth: number): string {
   return d + "Z";
 }
 
-const SIZE_MAP = { sm: 40, md: 56, lg: 76 } as const;
+const SIZE_MAP = { sm: 36, md: 48, lg: 64 } as const;
 
 export function AttestationStamp({
   state,
@@ -41,7 +41,7 @@ export function AttestationStamp({
       ? "var(--color-gold)"
       : state === "failed"
         ? "var(--color-rose)"
-        : "transparent";
+        : "rgba(0,0,0,0)";
 
   const stroke =
     state === "verified"
@@ -61,8 +61,8 @@ export function AttestationStamp({
           style={{
             background:
               state === "verified"
-                ? "rgba(201,150,46,0.35)"
-                : "rgba(226,76,107,0.3)",
+                ? "rgba(212,175,55,0.4)"
+                : "rgba(242,97,122,0.35)",
           }}
         />
       )}
@@ -90,7 +90,7 @@ export function AttestationStamp({
             cy={0}
             r={r - 2}
             fill="none"
-            stroke="var(--color-violet)"
+            stroke="var(--color-gold-soft)"
             strokeWidth={2}
             strokeLinecap="round"
             strokeDasharray={`${(r - 2) * 1.4} ${(r - 2) * 5}`}

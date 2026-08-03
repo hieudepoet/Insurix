@@ -1,129 +1,157 @@
-<!-- SEED: established with the user before implementation; re-run /impeccable document once there's code to capture the actual tokens and components. -->
-
 ---
 name: Insurix — Attestation Passport
-description: Mobile-web PoC of instant parametric-insurance payouts, trust made visible as a stamped attestation passport instead of blockchain mechanics.
+description: Mobile-web PoC of instant parametric-insurance payouts — a vault of falling gold light, glass panels, and stamped attestation proof.
+colors:
+  gold: "#d4af37"
+  gold-soft: "#c5a47e"
+  rose: "#f2617a"
+  green: "#34d399"
+  ink: "#f4f2fa"
+  slate: "#a39dc4"
+  canvas: "#0a0a0f"
+  card: "#1a1a2e"
+  hairline: "rgba(255,255,255,0.08)"
+typography:
+  headline:
+    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontSize: "1.375rem"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
+  title:
+    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontSize: "1.0625rem"
+    fontWeight: 600
+    lineHeight: 1.3
+  body:
+    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 500
+    lineHeight: 1.45
+  label:
+    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 600
+    letterSpacing: "0.02em"
+  mono-label:
+    fontFamily: "IBM Plex Mono, ui-monospace, monospace"
+    fontSize: "0.8125rem"
+    fontWeight: 500
+rounded:
+  input: "14px"
+  card: "22px"
+  pill: "999px"
+spacing:
+  card-padding: "20px"
+  section-gap: "28px"
+  related-gap: "12px"
+components:
+  button-primary:
+    backgroundColor: "{colors.gold}"
+    textColor: "#151020"
+    rounded: "{rounded.pill}"
+    height: "52px"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pill}"
+    height: "52px"
+  card:
+    backgroundColor: "rgba(19,19,32,0.88)"
+    rounded: "{rounded.card}"
+    padding: "{spacing.card-padding}"
 ---
 
 # Design System: Insurix — Attestation Passport
 
 ## Overview
 
-**Creative North Star: "The Attestation Passport"**
+**Creative North Star: "Gold Falling in a Vault"**
 
-Insurix's real mechanism — three independent machine checks replace a human adjuster — needs a trust object a mainstream insurance customer already understands. A passport is exactly that: an official document that only becomes valid once it has collected the right stamps from the right checkpoints, each stamp dated, sourced, and impossible to fake. This world borrows the visual grammar of a premium fintech-insurance mobile app (soft violet-gradient stage, white rounded cards, pill navigation — pinned by the user's reference) and gives it one signature moment nothing else in the system may touch: a warm gold/wax-seal accent reserved exclusively for the checkpoint stamps and the passport artifact they produce.
+Second revision of this world. The first pass ("Midnight Gold") went dark-obsidian-plus-gold but kept the scarcity discipline of the earlier light world — gold reserved only for attestation stamps, violet still carrying every button and nav state, a flat gradient on the hero card. Direct user feedback rejected that: *"still violet and blue, where is the gold... stop using gradient."* This revision answers literally: gold is now the app's only brand color — every button, the FAB, active nav, links, stat highlights — and violet/blue are gone entirely. The flat gradient is replaced by an actual moving material: reactbits.dev's **Lightfall** WebGL shader (github.com/DavidHDev/react-bits, MIT), retinted gold/bronze, rendered full-bleed behind every screen — gold light literally falling through the vault. Every card is glass (translucent, blurred, bordered) rather than a flat fill, so the falling light reads through the whole app, not just as a background wash.
 
-Direction was pinned by the user's reference image (a fintech insurance mobile app: lavender gradient backdrop, white card system, pill bottom nav, circular FAB, an ID-card/QR screen) — no concept-seed tournament was run; the visual world was committed directly, and the only original invention layered on top is the gold stamp/passport signature mechanism that carries the product's actual trust claim.
+**Why gold can carry everything now, not just verification:** with violet gone, gold no longer needs the previous world's "One Seal Rule" scarcity to feel earned — gold's meaning shifted from "this one thing is the trust marker" to "this is Insurix's identity," and the attestation stamps are still its most concentrated, most animated expression. The distinction that survives: the **checking/in-progress** state uses dim bronze (`gold-soft`), full bright gold means **verified/complete** — one hue family narrating the whole trust journey instead of a second color.
 
-This app is a separate visual world from `frontend/` (the production Sui-connected client) by design — this is a pitch/demo surface with its own identity.
+**Material change from v2:** Cards were flat `#1a1a2e` with a hairline border. They are now translucent (`rgba(19,19,32,0.88)`) with `backdrop-blur-2xl` and the same hairline border — glass, not paint. The opacity had to land at 0.88, not the more dramatic 0.55 first tried: at 0.55 the Lightfall streaks bled straight through body text and made the processing screen's narrative copy unreadable. High-opacity glass with blur still reads as a distinct material (soft edge-glow, faint color bleed at the border) without sacrificing legibility — contrast now wins over transparency wherever real copy sits on the surface; the more transparent read is left to the gaps between cards, where the light show is uncontested.
 
 **Key Characteristics:**
-- Ambient lavender-to-violet gradient stage behind a centered phone canvas (this is a mobile-web build wrapped in a literal phone frame, not a responsive site)
-- Pure white cards, generous rounding, soft violet-tinted shadow — calm, premium, familiar fintech register
-- One color law: gold/wax-seal amber appears *only* on attestation stamps and the passport artifact — never as decoration elsewhere
-- Zero blockchain vocabulary anywhere in copy or iconography
+- Lightfall (gold/bronze streaks, slow, ambient) renders full-bleed behind every screen — this is the app's signature motion, always present, never just a launch animation
+- Every surface is glass: `rgba(19,19,32,0.88)` + `backdrop-blur-2xl` + hairline border — never a flat opaque fill, never the old pastel drop-shadow
+- Gold is the entire brand palette: buttons, FAB, active nav, links, stat numbers, and the attestation stamps all share one hue, with bronze (`gold-soft`) as its dimmer "in progress" sibling
+- Rose (failure) and green (settled-amount emphasis) remain the only other meaningful colors; ink/slate are neutral text
+- No gradients anywhere — replaced by the WebGL shader for atmosphere and glass/blur for card material
 
 ## Colors
 
-Restrained-plus-signature strategy: neutrals and one violet accent carry the whole app (Operate mode default), except the attestation moment, which is allowed a second, tightly law-bound accent because it *is* the product's proof, not decoration.
-
 ### Primary
-- **Insurix Violet** (`#6C4CF1`): primary actions, active nav state, FAB, policy-card gradient, links. Used with intent, not wallpapered.
-- **Deep Violet** (`#4A2FC7`): pressed/active states, gradient depth on hero cards.
-
-### Secondary
-- **Attestation Gold** (`#C9962E`): reserved exclusively for checkpoint stamps, the passport seal, and "verified" iconography. Never used for a generic CTA, badge, or decoration — its rarity is what makes a stamp read as official.
+- **Gold** (`#d4af37`): the entire brand identity now — primary button fill (with near-black `#151020` text for contrast, not white), FAB, active nav icon/label, links, stat-tile numbers, verified attestation stamps, chip-selected state.
+- **Bronze / Gold Soft** (`#c5a47e`): the dimmer sibling — the "checking" in-progress spinner and label, so a claim's journey reads as bronze-deepening-to-gold rather than switching hues.
 
 ### Tertiary
-- **Signal Rose** (`#E24C6B`): the single failure/rejection color — one named checkpoint's stamp turns this color when it fails, and the rejection screen's accent. Never used elsewhere, so its appearance always means "this failed."
-- **Confirm Green** (`#1E9E6B`): success confirmations only (payout complete), used sparingly against the violet system, not as a general "success" wash.
+- **Signal Rose** (`#f2617a`): the single failure/rejection color — a failed checkpoint's stamp, the rejection screen's icon/headline, the "File an Appeal" ghost button text. Never used elsewhere.
+- **Confirm Green** (`#34d399`): the settled checkmark and its icon background only.
 
 ### Neutral
-- **Ink** (`#151321`): primary text.
-- **Slate** (`#6B6880`): secondary/meta text (timestamps, helper copy) — tinted from Ink's hue, never plain gray.
-- **Canvas** (`#FAF9FF`): phone-screen background, faint violet tint.
-- **Card White** (`#FFFFFF`): card surfaces.
-- **Hairline** (`#EDEAF7`): dividers, input borders at rest.
+- **Ink** (`#f4f2fa`), **Slate** (`#a39dc4`), **Canvas** (`#0a0a0f`), **Card/Glass base** (`rgba(19,19,32,0.88)`), **Hairline** (`rgba(255,255,255,0.08)`) — unchanged in hue from v2, only the card's alpha changed (see Elevation).
 
 ### Named Rules
-**The One Seal Rule.** Attestation Gold and Signal Rose exist to mark verification state and nothing else. If a color is being used for a button, a chip, or a section background, it is not one of these two.
+**The Gold-Bronze Journey Rule.** A checkpoint is dim bronze while running, bright gold once verified. Never introduce a second hue to distinguish "in progress" from "done" — the journey is one color deepening, not a palette switch.
+**The Glass-Not-Paint Rule.** Every container is translucent + blurred + hairline-bordered. A flat opaque fill on a card is v1/v2 habit reasserting itself.
 
 ## Typography
 
-**Display/Body Font:** Plus Jakarta Sans (with system-ui, sans-serif fallback)
-**Label/Mono Font:** IBM Plex Mono (with ui-monospace fallback) — used only for attestation hashes/IDs, nowhere else.
-
-**Character:** Plus Jakarta Sans reads warm and geometric without tipping into the generic-SaaS-Inter default — rounded terminals suit a consumer insurance app; one family carries headings through data per product-UI convention. The mono face is a deliberate, narrow exception: it appears only where a real cryptographic-style identifier is being shown, so its presence itself signals "this is a verifiable record."
-
-### Hierarchy
-- **Display** (700, 2rem/1.15): payout amount, passport headline moments only.
-- **Headline** (700, 1.375rem/1.25): screen titles ("File a Claim," "Attestation Passport").
-- **Title** (600, 1.0625rem/1.3): card titles, policy names, checkpoint names.
-- **Body** (500, 0.9375rem/1.45): primary UI copy, form labels, descriptions.
-- **Label** (600, 0.75rem/1.3, tracking 0.02em): nav labels, chip text, status pills.
-- **Mono Label** (500, 0.8125rem, IBM Plex Mono): attestation hash fragments, timestamps.
-
-### Named Rules
-**The Data-Is-Mono Rule.** Any string a real system would have cryptographically produced (attestation ID, hash fragment, block-style timestamp) renders in the mono face; everything a human wrote or chose renders in Plus Jakarta Sans. Never mix the two for the same value.
+Unchanged from v2: Space Grotesk (body/display), IBM Plex Mono (attestation IDs only). See hierarchy in the frontmatter above.
 
 ## Layout
 
-Fixed phone canvas (390×844 logical px, iPhone-class viewport) centered in the browser viewport against the gradient stage; below ~480px browser width the phone canvas fills the viewport edge-to-edge (still phone-shaped, frame chrome drops). Content padding 20px horizontal inside the canvas. Card stack rhythm: 12px between related cards, 28px between sections, more space above a heading than below it. Bottom nav is fixed/pinned at the canvas floor, 64px tall, content scroll area accounts for its height plus safe-area.
+Unchanged: fixed 390×844 phone canvas, edge-to-edge below ~480px, 20px horizontal content padding.
 
 ## Elevation & Depth
 
-Layered, not flat: cards lift off the Canvas background with a soft, colored (violet-tinted, never gray) diffuse shadow — the reference world's signature. The phone canvas itself lifts off the gradient stage with a heavier ambient shadow so it reads as an object sitting on the gradient, not a cropped screenshot.
+This is where v3 diverges most from v2. v2 used opaque cards (`#1a1a2e`) with a plain dark drop shadow. v3 makes every card **actual glass**: `background: rgba(19,19,32,0.88)`, `backdrop-filter: blur(24px) saturate(1.5)`, `border: 1px solid rgba(255,255,255,0.08)`. The Lightfall canvas sits behind everything at `z-0`; all screen content sits at `z-10`. Depth reads as: the light shows clearly in the gaps between cards and faintly through card edges, while card interiors stay legible because the base alpha is high enough (0.88) to guarantee text contrast regardless of what's moving behind it.
 
 ### Shadow Vocabulary
-- **card-rest** (`0 4px 16px rgba(108,76,241,0.10)`): default card elevation.
-- **card-raised** (`0 12px 32px rgba(108,76,241,0.18)`): hero policy card, active/pressed states, modals.
-- **phone-frame** (`0 40px 80px rgba(30,20,70,0.35)`): the phone canvas against the gradient stage.
-- **seal-glow** (`0 0 0 6px rgba(201,150,46,0.12)`): the instant a stamp lands, a brief gold halo (motion-paired, not a static decoration).
+- **card-rest** (`0 4px 20px rgba(0,0,0,0.45)`): default glass card.
+- **card-raised** (`0 16px 40px rgba(0,0,0,0.55)`): hero/interactive cards.
+- **gold-glow** (`0 10px 28px rgba(212,175,55,0.35-0.4)`): primary button/FAB — replaces the v2 violet-glow with the same technique, gold hue.
+- **seal-glow** (`rgba(212,175,55,0.4)` gold / `rgba(242,97,122,0.35)` rose): unchanged mechanism from v1/v2 — the stamp-landing halo.
+
+### Named Rules
+**The High-Alpha Glass Rule.** Glass opacity is tuned for legibility first: 0.88, not a more "dramatic" lower value. A translucent card that fails a contrast check against moving background content is a broken material, not an aesthetic choice.
 
 ## Shapes
 
-Consistently soft: cards and the phone canvas both round at large radii (canvas ~44px matching real device corner radius; cards 20-24px). Buttons and chips are fully pill-shaped (radius 999px) except the primary FAB, which is a perfect circle. Inputs use a smaller 14px radius so form fields read as distinct from card containers. The attestation stamp is the one deliberate shape break: a circular seal with a scalloped/notched edge (like a wax seal or an official rubber stamp), the single moment the system allows a shape the rest of the app never uses.
+Unchanged: large rounded corners (canvas ~44px, cards 20-24px), pill buttons/chips, circular FAB, scalloped wax-seal stamp as the one shape break.
 
 ## Components
 
 ### Buttons
-- **Shape:** pill (999px radius), 52px height for primary actions.
-- **Primary:** Insurix Violet fill, white text, `card-raised` shadow on press (translateY(-1px) + shadow grow), disabled state at 40% opacity with no shadow.
-- **Secondary/Ghost:** Hairline border, Ink text, no fill; hover/active fills Canvas.
-- **Destructive-adjacent (rare):** used only on the rejection screen's non-primary action ("File an Appeal"), Signal Rose text on ghost, never Rose fill.
+- **Primary:** Gold fill, `#151020` text (near-black, for contrast against a light warm fill — white-on-gold was tried and rejected for contrast), `gold-glow` shadow.
+- **Ghost:** hairline border, ink text (or rose text for the destructive-adjacent "File an Appeal"), hover fills `rgba(255,255,255,0.06-0.09)`.
+- **Chip:** unselected `rgba(255,255,255,0.04)` + hairline; selected `rgba(212,175,55,0.16)` + gold border/text.
 
-### Chips
-- **Style:** Canvas background at rest, Hairline border; selected state fills Violet at 12% opacity with Violet text and a 1.5px Violet border. Used for product-type pickers (Flight Delay / Heavy Rain) and quick filters.
-
-### Cards / Containers
-- **Corner Style:** 20-24px radius.
-- **Background:** Card White, except the hero policy card which carries a Violet→Deep Violet diagonal gradient with white text.
-- **Shadow Strategy:** `card-rest` at rest, `card-raised` for the hero/interactive state.
-- **Border:** none at rest; hero card's gradient supplies its own edge definition.
-- **Internal Padding:** 20px.
-
-### Inputs / Fields
-- **Style:** Card White fill, Hairline border (1.5px), 14px radius, 15px label above field.
-- **Focus:** border shifts to Insurix Violet, no glow/ring — clean state change per product-UI conventions.
-- **Error:** border shifts to Signal Rose, helper text below in Rose.
+### Cards
+All cards use the shared `GLASS` class (see Elevation). No component in the app uses a flat opaque fill anymore.
 
 ### Navigation
-- **Style:** fixed pill-shaped bottom bar floating 12px off the canvas floor, Card White with `card-raised` shadow, 4 icon+label items (Home / Claims / Policies / Profile). Active item: icon+label in Insurix Violet with a small filled dot beneath; inactive: Slate.
-- **FAB:** circular, Insurix Violet fill, centered-overlap on the nav bar, white plus icon, used for "File a Claim" from Home.
+Glass pill bar (was opaque `--color-card`), gold active state (was violet), gold FAB with `gold-glow`.
 
-### Attestation Stamp (signature component)
-The product's proof made physical. A circle (56px) with a scalloped rim, default state a faint dashed Hairline outline with a clock glyph (pending); on verification it animates a solid Attestation Gold fill sweeping in with a brief `seal-glow`, settling with a check glyph and the checkpoint name below in Label type; on failure the same motion resolves to Signal Rose with an alert glyph instead of gold. Three stamps in a row form a "checkpoint strip" reused on the processing screen, the outcome screens, and the passport detail screen — the same component, three different moments in its life.
+### Attestation Stamp (signature component, mechanism unchanged since v1)
+Scalloped wax-seal circle. Pending: dashed hairline outline, clock glyph. Checking: bronze (`gold-soft`) spinning ring. Verified: gold fill sweep + `seal-glow` + checkmark. Failed: rose fill + `seal-glow` + X. The only change from v2 is the checking-state color (was violet, now bronze) — removing the last non-gold hue from the trust journey.
+
+### Verification Stack (new signature interaction, v3)
+The processing screen replaced v2's fixed vertical checklist with a horizontal snap-scrolling stack, one full slide per checkpoint. Auto-advances via `scrollIntoView` as each checkpoint starts/resolves, but remains manually swipeable — a user can read ahead to a not-yet-run checkpoint's narrative, or look back at a completed one. Each slide carries: the stamp (large), a state label, and a glass narrative card with **three tiers of copy**: (1) a technical paragraph explaining what this checkpoint actually verifies and why it can't be gamed — present always, even before the checkpoint runs; (2) on verified, the attestation ID in mono; (3) on failed, the specific failure reason in rose bold plus a "What to do next" remediation paragraph (appeal process, what not to do). A compact `CheckpointStrip` overview + progress dots sit above the stack so overall status is visible without scrolling through all three slides.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep Attestation Gold and Signal Rose confined to verification state — if you reach for gold to make something feel "premium" decoratively, stop; that is the One Seal Rule breaking.
-- **Do** render every attestation identifier (hash fragment, timestamp) in IBM Plex Mono, styled as a real verifiable record even though the data is mocked.
-- **Do** let the checkpoint strip's motion carry real pacing information (roughly 900ms-1.4s per stamp, sequential, not simultaneous) — the sequence *is* the pitch.
-- **Do** show the rejection flow with the same visual confidence as approval — two passed stamps in gold, one failed stamp in rose, named plainly.
+- **Do** keep every card at the 0.88-alpha glass recipe — never drop opacity further "for drama" without re-checking text contrast against the moving Lightfall background.
+- **Do** use bronze for "in progress" and gold for "verified" — one hue, two depths, never a second color for state.
+- **Do** let the verification stack's narrative copy carry real information (what/why/what-to-do-next), not filler — it replaced a plain list specifically to add this.
+- **Do** keep rose and green confined to their one meaning each (failure; settled-amount emphasis).
 
 ### Don't:
-- **Don't** write "Sui," "blockchain," "wallet," "on-chain," "transaction," "gas," or any chain-explorer link anywhere in this app's copy or UI.
-- **Don't** use Attestation Gold or Signal Rose on any element that is not literally a verification state.
-- **Don't** borrow `frontend/`'s dark/mesh visual system — this is a deliberately separate, distinct world.
-- **Don't** invent a third product type or a fourth checkpoint; the real system has exactly two products and three checkpoints.
+- **Don't** reintroduce violet, blue, or any second brand hue — this was direct, explicit user correction against v2.
+- **Don't** use a flat gradient anywhere — the Lightfall shader and glass material are the replacement technique, not a stylistic option to fall back to under time pressure.
+- **Don't** drop card background alpha below ~0.85 without testing real copy against the busiest part of the Lightfall animation.
+- **Don't** write "Sui," "blockchain," "wallet," "on-chain," "transaction," or "gas" anywhere in this app's copy or UI — unchanged hard constraint from the product brief, carried through both redesigns.

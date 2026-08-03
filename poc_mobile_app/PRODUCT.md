@@ -28,11 +28,11 @@ The customer already holds an active policy (Flight Delay Shield or Heavy Rain C
 - **Never show Sui, blockchain, wallet, gas, or chain-explorer language anywhere in this app.** The underlying trust mechanism is real (see backend `orchestrator.ts` / attestation agents / Move contracts), but this surface must translate it entirely into insurance-native vocabulary: "attestation," "checkpoint," "verified by," "stamp," never "on-chain," "transaction," "signed by wallet."
 - Two product types only, matching the real contract's supported types: **Flight Delay** (delay-minutes threshold) and **Heavy Rain** (rainfall-mm threshold). Do not invent additional product lines.
 - Three verification checkpoints, matching the real agent pipeline: **Identity**, **External Data** (the oracle that confirms the triggering event — flight status or weather station reading), **Fraud Check**. A claim settles only once all three pass; if any one fails, the claim is rejected with that checkpoint named as the reason.
-- This is a separate app from `frontend/` (the real Sui-connected client) and must not share its visual system — a deliberate different visual world for this pitch surface is expected and correct.
+- This is a separate app from `frontend/` (the real Sui-connected client), free to run its own visual identity — it may draw on the same reference material as frontend without literally copying its palette.
 
 ## Brand Commitments
 
-Product name: **Insurix**. No existing logo/asset library to preserve for this sub-app; free to establish a dedicated visual identity for the mobile demo (see DESIGN.md).
+Product name: **Insurix**. Visual identity for this sub-app: **"Midnight Gold"** (dark obsidian/navy world, brushed-gold reserved exclusively for attestation verification, violet as a quiet functional accent) — chosen by the user from `docs/marketing/ui-theme-prompts.md`'s documented palette options, specifically because gold's scarcity against a dark stage reinforces the attestation-stamp mechanism. See DESIGN.md for the full system. This supersedes the earlier light-lavender direction, which is retired.
 
 ## Evidence on Hand
 

@@ -1,114 +1,173 @@
 import Link from "next/link";
 import { CLAIM_HISTORY, POLICIES, formatUsd, formatDate } from "@/data/mock";
-import { Card, StatusPill } from "@/components/ui";
+import { Card, StatusPill, GLASS } from "@/components/ui";
+import { ProductIcon } from "@/components/ProductIcon";
+
+const STATS = [
+  { label: "Protection Score", value: "92", suffix: "/100" },
+  { label: "Active Coverage", value: formatUsd(POLICIES.reduce((s, p) => s + p.payoutUsd, 0)) },
+  { label: "Claims Filed", value: String(CLAIM_HISTORY.length) },
+];
 
 export default function HomePage() {
   const heroPolicy = POLICIES[0];
 
   return (
-    <div className="px-5 pt-2 pb-8 flex flex-col gap-7">
-      <header className="flex items-center justify-between pt-2">
+    <div className="px-4 pt-1.5 pb-4 flex flex-col gap-3.5">
+      <header className="flex items-center justify-between pt-1">
         <div>
-          <p className="text-[13px] text-[var(--color-slate)] font-semibold">Good afternoon</p>
-          <h1 className="text-[21px] font-extrabold text-[var(--color-ink)]">Hi, Alex</h1>
+          <p className="text-[11.5px] text-[var(--color-slate)] font-semibold">Good afternoon</p>
+          <h1 className="text-[18px] font-extrabold text-[var(--color-ink)]">Hi, Alex</h1>
         </div>
-        <div className="w-11 h-11 rounded-full bg-[color-mix(in_oklab,var(--color-violet)_14%,white)] flex items-center justify-center text-[var(--color-violet)] font-bold text-[15px]">
-          A
+        <div className="flex items-center gap-1.5">
+          <button
+            aria-label="Notifications"
+            className={`relative w-9 h-9 rounded-full ${GLASS} flex items-center justify-center active:scale-95 transition-transform`}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"
+                stroke="var(--color-ink)"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M9.5 18a2.5 2.5 0 0 0 5 0" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <span
+              className="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full"
+              style={{ background: "var(--color-gold)" }}
+            />
+          </button>
+          <div className="w-9 h-9 rounded-full bg-[rgba(212,175,55,0.16)] flex items-center justify-center text-[var(--color-gold)] font-bold text-[13px]">
+            A
+          </div>
         </div>
       </header>
 
+      <button
+        className={`h-9 rounded-full ${GLASS} px-3.5 flex items-center gap-2 text-left active:scale-[0.99] transition-transform`}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+          <circle cx="11" cy="11" r="6.5" stroke="var(--color-slate)" strokeWidth="1.8" />
+          <path d="m20 20-4.3-4.3" stroke="var(--color-slate)" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+        <span className="text-[12px] text-[var(--color-slate)] font-medium">
+          Search claims, policies…
+        </span>
+      </button>
+
+      <section className="grid grid-cols-3 gap-2">
+        {STATS.map((stat) => (
+          <div
+            key={stat.label}
+            className={`rounded-[14px] ${GLASS} px-2.5 py-2 flex flex-col gap-0.5`}
+            style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
+          >
+            <p className="text-[13.5px] font-extrabold text-[var(--color-gold)] leading-none">
+              {stat.value}
+              {stat.suffix && (
+                <span className="text-[9px] font-semibold text-[var(--color-slate)]">
+                  {stat.suffix}
+                </span>
+              )}
+            </p>
+            <p className="text-[8.5px] text-[var(--color-slate)] font-semibold leading-tight">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </section>
+
       <section>
         <div
-          className="rounded-[24px] p-6 text-white relative overflow-hidden"
+          className={`rounded-[18px] p-4 relative overflow-hidden ${GLASS}`}
           style={{
-            background: "linear-gradient(135deg, #7C5CFF 0%, #6C4CF1 45%, #4A2FC7 100%)",
-            boxShadow: "0 12px 32px rgba(108,76,241,0.32)",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
+            borderColor: "rgba(212,175,55,0.25)",
           }}
         >
-          <div
-            className="absolute -right-10 -top-10 w-40 h-40 rounded-full"
-            style={{ background: "rgba(255,255,255,0.08)" }}
-          />
           <div className="relative flex items-center justify-between">
-            <span className="text-[12px] font-bold tracking-wide uppercase text-white/75">
+            <span className="text-[10.5px] font-bold tracking-wide uppercase text-[var(--color-gold)]">
               Active policy
             </span>
             <ShieldIcon />
           </div>
-          <p className="relative mt-4 text-[19px] font-bold">{heroPolicy.name}</p>
-          <p className="relative text-[13px] text-white/75 mt-0.5">{heroPolicy.coverageLabel}</p>
+          <p className="relative mt-2 text-[16px] font-bold text-[var(--color-ink)]">{heroPolicy.name}</p>
+          <p className="relative text-[11.5px] text-[var(--color-slate)] mt-0.5">{heroPolicy.coverageLabel}</p>
 
-          <div className="relative flex items-end justify-between mt-6">
+          <div className="relative flex items-end justify-between mt-3">
             <div>
-              <p className="text-[11px] text-white/60 font-semibold">Policy number</p>
-              <p className="text-[14px] font-semibold tracking-wide">{heroPolicy.policyNumber}</p>
+              <p className="text-[10px] text-[var(--color-slate)] font-semibold">Policy number</p>
+              <p className="text-[12.5px] font-semibold tracking-wide text-[var(--color-ink)]">{heroPolicy.policyNumber}</p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] text-white/60 font-semibold">Payout</p>
-              <p className="text-[18px] font-extrabold">{formatUsd(heroPolicy.payoutUsd)}</p>
+              <p className="text-[10px] text-[var(--color-slate)] font-semibold">Payout</p>
+              <p className="text-[15px] font-extrabold text-[var(--color-gold)]">{formatUsd(heroPolicy.payoutUsd)}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-bold text-[var(--color-ink)]">Your policies</h2>
-          <Link href="/policies" className="text-[13px] font-semibold text-[var(--color-violet)]">
+          <h2 className="text-[13px] font-bold text-[var(--color-ink)]">Your policies</h2>
+          <Link href="/policies" className="text-[11.5px] font-semibold text-[var(--color-gold)]">
             View all
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {POLICIES.map((policy) => (
             <div
               key={policy.id}
-              className="rounded-[18px] bg-[var(--color-card)] p-4 flex flex-col gap-2"
-              style={{ boxShadow: "0 4px 16px rgba(108,76,241,0.10)" }}
+              className={`rounded-[16px] ${GLASS} p-3 flex flex-col gap-1.5`}
+              style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.45)" }}
             >
-              <div className="w-9 h-9 rounded-full bg-[color-mix(in_oklab,var(--color-violet)_10%,white)] flex items-center justify-center">
-                {policy.product === "flight-delay" ? <PlaneIcon /> : <RainIcon />}
+              <div className="w-7 h-7 rounded-full bg-[rgba(212,175,55,0.14)] flex items-center justify-center text-[var(--color-gold)]">
+                <ProductIcon product={policy.product} />
               </div>
-              <p className="text-[13px] font-bold text-[var(--color-ink)] leading-tight">
+              <p className="text-[11.5px] font-bold text-[var(--color-ink)] leading-tight">
                 {policy.name}
               </p>
-              <p className="text-[11px] text-[var(--color-slate)] font-medium">{policy.meta}</p>
+              <p className="text-[9.5px] text-[var(--color-slate)] font-medium leading-tight">{policy.meta}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-bold text-[var(--color-ink)]">Recent claims</h2>
-          <Link href="/claims" className="text-[13px] font-semibold text-[var(--color-violet)]">
+          <h2 className="text-[13px] font-bold text-[var(--color-ink)]">Recent claims</h2>
+          <Link href="/claims" className="text-[11.5px] font-semibold text-[var(--color-gold)]">
             See all
           </Link>
         </div>
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           {CLAIM_HISTORY.map((claim) => (
             <Link key={claim.id} href={`/claims/${claim.id}`}>
-              <Card className="!p-4 flex items-center gap-3">
+              <Card className="!p-2.5 flex items-center gap-2.5">
                 <div
-                  className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+                  className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                   style={{
                     background:
                       claim.status === "rejected"
-                        ? "rgba(226,76,107,0.12)"
-                        : "rgba(30,158,107,0.12)",
+                        ? "rgba(242,97,122,0.14)"
+                        : "rgba(52,211,153,0.14)",
+                    color:
+                      claim.status === "rejected" ? "var(--color-rose)" : "var(--color-green)",
                   }}
                 >
-                  {claim.product === "flight-delay" ? <PlaneIcon /> : <RainIcon />}
+                  <ProductIcon product={claim.product} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13.5px] font-bold text-[var(--color-ink)] truncate">
+                  <p className="text-[12px] font-bold text-[var(--color-ink)] truncate">
                     {claim.title}
                   </p>
-                  <p className="text-[11.5px] text-[var(--color-slate)] font-medium">
+                  <p className="text-[10px] text-[var(--color-slate)] font-medium">
                     {formatDate(claim.createdAt)}
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <span className="text-[13px] font-bold text-[var(--color-ink)]">
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-[11.5px] font-bold text-[var(--color-ink)]">
                     {formatUsd(claim.amountUsd)}
                   </span>
                   <StatusPill status={claim.status} />
@@ -124,42 +183,12 @@ export default function HomePage() {
 
 function ShieldIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
       <path
         d="M12 3.5 19 6v6c0 4.4-2.9 7.9-7 8.5-4.1-.6-7-4.1-7-8.5V6l7-2.5Z"
-        stroke="white"
-        strokeOpacity="0.9"
+        stroke="var(--color-gold)"
         strokeWidth="1.6"
         strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function PlaneIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="m3 12 7-2 4-7 2 1-2.5 6.5L21 9l1 2-7.5 3.5L13 21l-2-1 1-6-6 2-2-2 4-2.5L3 12Z"
-        fill="var(--color-violet)"
-      />
-    </svg>
-  );
-}
-
-function RainIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M7 13a4.5 4.5 0 0 1 .3-9c1-2.3 3.3-3.8 6-3.4 3 .4 5.2 3 5.2 6a4.8 4.8 0 0 1-1 9.4H7Z"
-        fill="var(--color-violet)"
-        opacity="0.85"
-      />
-      <path
-        d="M8 17.5 6.5 20M12.5 17.5 11 20M17 17.5 15.5 20"
-        stroke="var(--color-violet)"
-        strokeWidth="1.6"
-        strokeLinecap="round"
       />
     </svg>
   );

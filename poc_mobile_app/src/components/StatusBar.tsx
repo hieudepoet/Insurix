@@ -1,6 +1,6 @@
 export function StatusBar() {
   return (
-    <div className="flex items-center justify-between px-7 pt-4 pb-1 text-[var(--color-ink)] shrink-0 select-none">
+    <div className="flex items-center justify-between px-6 pt-3 pb-1 text-[var(--color-ink)] shrink-0 select-none">
       <span className="text-[15px] font-bold tracking-tight">9:41</span>
       <div className="flex items-center gap-1.5">
         {/* signal */}

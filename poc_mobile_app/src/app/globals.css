@@ -1,21 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-jakarta);
+  --font-sans: var(--font-space-grotesk);
   --font-mono: var(--font-plex-mono);
 
-  --color-violet: #6c4cf1;
-  --color-violet-deep: #4a2fc7;
-  --color-gold: #c9962e;
-  --color-gold-soft: #eddcb6;
-  --color-rose: #e24c6b;
-  --color-green: #1e9e6b;
+  --color-gold: #d4af37;
+  --color-gold-soft: #c5a47e;
+  --color-rose: #f2617a;
+  --color-green: #34d399;
 
-  --color-ink: #151321;
-  --color-slate: #6b6880;
-  --color-canvas: #faf9ff;
-  --color-card: #ffffff;
-  --color-hairline: #edeaf7;
+  --color-ink: #f4f2fa;
+  --color-slate: #a39dc4;
+  --color-canvas: #0a0a0f;
+  --color-card: #1a1a2e;
+  --color-hairline: rgba(255, 255, 255, 0.08);
 }
 
 html,
@@ -24,7 +22,7 @@ body {
 }
 
 body {
-  background: #0f0a2e;
+  background: #050508;
   color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -35,7 +33,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-violet) 30%, transparent);
+  background: color-mix(in oklab, var(--color-gold) 35%, transparent);
 }
 
 .hide-scrollbar {
