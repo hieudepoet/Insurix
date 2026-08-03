@@ -1,16 +1,33 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CLAIM_HISTORY, POLICIES, formatUsd, formatDate } from "@/data/mock";
 import { Card, StatusPill, GLASS } from "@/components/ui";
 import { ProductIcon } from "@/components/ProductIcon";
 
-const STATS = [
-  { label: "Protection Score", value: "92", suffix: "/100" },
-  { label: "Active Coverage", value: formatUsd(POLICIES.reduce((s, p) => s + p.payoutUsd, 0)) },
-  { label: "Claims Filed", value: String(CLAIM_HISTORY.length) },
+const TOTAL_COVERAGE = POLICIES.reduce((s, p) => s + p.payoutUsd, 0);
+
+const SERVICES: { label: string; href: string | null; icon: (p: { className?: string }) => React.ReactElement }[] = [
+  { label: "File a Claim", href: "/claims/new", icon: ClaimIcon },
+  { label: "My Policies", href: "/policies", icon: ShieldIcon },
+  { label: "Bills", href: "/policies", icon: ReceiptIcon },
+  { label: "Vouchers", href: "/policies", icon: TicketIcon },
+  { label: "Explore", href: "/policies", icon: GridIcon },
+  { label: "History", href: "/claims", icon: ClockIcon },
+  { label: "Support", href: null, icon: HeadsetIcon },
+  { label: "Refer & Earn", href: null, icon: GiftIcon },
+];
+
+const BANNERS = [
+  { title: "Refer a friend, get $20", subtitle: "Share your code — you both earn credit", icon: GiftIcon },
+  { title: "New: Pet Insurance", subtitle: "Now available, from $7/mo", icon: PawIcon },
 ];
 
 export default function HomePage() {
-  const heroPolicy = POLICIES[0];
+  const router = useRouter();
+  const [showBalance, setShowBalance] = useState(true);
 
   return (
     <div className="px-4 pt-1.5 pb-4 flex flex-col gap-3.5">
@@ -56,31 +73,10 @@ export default function HomePage() {
         </span>
       </button>
 
-      <section className="grid grid-cols-3 gap-2">
-        {STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-[14px] ${GLASS} px-2.5 py-2 flex flex-col gap-0.5`}
-            style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
-          >
-            <p className="text-[13.5px] font-extrabold text-[var(--color-gold)] leading-none">
-              {stat.value}
-              {stat.suffix && (
-                <span className="text-[9px] font-semibold text-[var(--color-slate)]">
-                  {stat.suffix}
-                </span>
-              )}
-            </p>
-            <p className="text-[8.5px] text-[var(--color-slate)] font-semibold leading-tight">
-              {stat.label}
-            </p>
-          </div>
-        ))}
-      </section>
-
       <section>
-        <div
-          className={`rounded-[18px] p-4 relative overflow-hidden ${GLASS}`}
+        <button
+          onClick={() => router.push("/policies")}
+          className={`w-full text-left rounded-[18px] p-4 relative overflow-hidden ${GLASS} active:scale-[0.99] transition-transform`}
           style={{
             boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
             borderColor: "rgba(212,175,55,0.25)",
@@ -88,50 +84,71 @@ export default function HomePage() {
         >
           <div className="relative flex items-center justify-between">
             <span className="text-[10.5px] font-bold tracking-wide uppercase text-[var(--color-gold)]">
-              Active policy
+              Total coverage
             </span>
-            <ShieldIcon />
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBalance((v) => !v);
+              }}
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-[rgba(255,255,255,0.06)]"
+            >
+              <EyeIcon open={showBalance} />
+            </span>
           </div>
-          <p className="relative mt-2 text-[16px] font-bold text-[var(--color-ink)]">{heroPolicy.name}</p>
-          <p className="relative text-[11.5px] text-[var(--color-slate)] mt-0.5">{heroPolicy.coverageLabel}</p>
+          <p className="relative mt-1.5 text-[26px] font-extrabold text-[var(--color-ink)] tracking-tight">
+            {showBalance ? formatUsd(TOTAL_COVERAGE) : "••••••"}
+          </p>
+          <div className="relative flex items-center justify-between mt-3">
+            <span className="text-[11px] text-[var(--color-slate)] font-medium">
+              {POLICIES.length} active policies
+            </span>
+            <span
+              className="text-[9.5px] font-bold px-2 h-5 rounded-full inline-flex items-center"
+              style={{ background: "rgba(212,175,55,0.14)", color: "var(--color-gold)" }}
+            >
+              Protection Score 92
+            </span>
+          </div>
+        </button>
+      </section>
 
-          <div className="relative flex items-end justify-between mt-3">
-            <div>
-              <p className="text-[10px] text-[var(--color-slate)] font-semibold">Policy number</p>
-              <p className="text-[12.5px] font-semibold tracking-wide text-[var(--color-ink)]">{heroPolicy.policyNumber}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] text-[var(--color-slate)] font-semibold">Payout</p>
-              <p className="text-[15px] font-extrabold text-[var(--color-gold)]">{formatUsd(heroPolicy.payoutUsd)}</p>
-            </div>
-          </div>
+      <section>
+        <div className="grid grid-cols-4 gap-y-3">
+          {SERVICES.map((s) => (
+            <button
+              key={s.label}
+              onClick={() => s.href && router.push(s.href)}
+              className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-[rgba(212,175,55,0.14)] flex items-center justify-center text-[var(--color-gold)]">
+                <s.icon />
+              </div>
+              <span className="text-[9px] font-semibold text-[var(--color-ink)] text-center leading-tight px-0.5">
+                {s.label}
+              </span>
+            </button>
+          ))}
         </div>
       </section>
 
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[13px] font-bold text-[var(--color-ink)]">Your policies</h2>
-          <Link href="/policies" className="text-[11.5px] font-semibold text-[var(--color-gold)]">
-            View all
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {POLICIES.map((policy) => (
-            <div
-              key={policy.id}
-              className={`rounded-[16px] ${GLASS} p-3 flex flex-col gap-1.5`}
-              style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.45)" }}
-            >
-              <div className="w-7 h-7 rounded-full bg-[rgba(212,175,55,0.14)] flex items-center justify-center text-[var(--color-gold)]">
-                <ProductIcon product={policy.product} />
-              </div>
-              <p className="text-[11.5px] font-bold text-[var(--color-ink)] leading-tight">
-                {policy.name}
-              </p>
-              <p className="text-[9.5px] text-[var(--color-slate)] font-medium leading-tight">{policy.meta}</p>
+      <section className="flex gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4">
+        {BANNERS.map((b) => (
+          <div
+            key={b.title}
+            className={`shrink-0 w-[250px] rounded-[16px] ${GLASS} p-3 flex items-center gap-2.5`}
+          >
+            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-[rgba(212,175,55,0.14)] text-[var(--color-gold)]">
+              <b.icon />
             </div>
-          ))}
-        </div>
+            <div className="min-w-0">
+              <p className="text-[11.5px] font-bold text-[var(--color-ink)] leading-tight">{b.title}</p>
+              <p className="text-[9.5px] text-[var(--color-slate)] leading-tight mt-0.5">{b.subtitle}</p>
+            </div>
+          </div>
+        ))}
       </section>
 
       <section className="flex flex-col gap-2">
@@ -181,15 +198,94 @@ export default function HomePage() {
   );
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.6" stroke="var(--color-ink)" strokeWidth="1.6" />
+    </svg>
+  ) : (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M3 3l18 18M9.9 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 6.5 10 6.5a15 15 0 0 1-3.2 4M6.6 6.6C4 8.3 2 11.5 2 11.5S5.5 18 12 18a9.8 9.8 0 0 0 3-.5M14.2 14.2a3 3 0 0 1-4.4-4.1" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ClaimIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <path d="M7 3h8l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M12 11v6M9 14h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
 function ShieldIcon() {
   return (
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 3.5 19 6v6c0 4.4-2.9 7.9-7 8.5-4.1-.6-7-4.1-7-8.5V6l7-2.5Z"
-        stroke="var(--color-gold)"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+      <path d="M12 3.5 19 6v6c0 4.4-2.9 7.9-7 8.5-4.1-.6-7-4.1-7-8.5V6l7-2.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function ReceiptIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <path d="M6 3.5h12v17l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3v-17Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8.5 8h7M8.5 11.5h7M8.5 15h4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+function TicketIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <path d="M20 8H4a1 1 0 0 0-1 1v3a2 2 0 0 1 0 4v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 1 0-4V9a1 1 0 0 0-1-1ZM12 8v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function GridIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function HeadsetIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+      <path d="M4 13v-1a8 8 0 0 1 16 0v1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="3" y="13" width="4" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="17" y="13" width="4" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M19 19.5a4 4 0 0 1-4 3.5h-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+function GiftIcon({ className }: { className?: string }) {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="4" y="9.5" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5.5 13.5v7a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-7M12 9.5v12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 9.5c0-2.5-1.5-4.5-3.5-4.5S6 7 8 9.5M12 9.5c0-2.5 1.5-4.5 3.5-4.5S18 7 16 9.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function PawIcon({ className }: { className?: string }) {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="8.2" cy="6.6" r="1.7" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="15.8" cy="6.6" r="1.7" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="5" cy="11.4" r="1.6" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="19" cy="11.4" r="1.6" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 12.2c2.6 0 4.6 1.8 4.6 3.9 0 1.6-1.4 2.4-2.9 2-1-.3-2.4-.3-3.4 0-1.5.4-2.9-.4-2.9-2 0-2.1 2-3.9 4.6-3.9Z" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
