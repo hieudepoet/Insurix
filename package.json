@@ -5,9 +5,11 @@
   "scripts": {
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
+    "dev:poc": "pnpm --filter poc_mobile_app dev",
     "dev": "pnpm run dev:backend & pnpm run dev:frontend",
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
+    "build:poc": "pnpm --filter poc_mobile_app build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   }

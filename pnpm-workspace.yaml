@@ -1,3 +1,4 @@
 packages:
   - 'backend'
   - 'frontend'
+  - 'poc_mobile_app'

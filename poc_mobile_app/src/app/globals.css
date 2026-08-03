@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-plex-mono);
+
+  --color-violet: #6c4cf1;
+  --color-violet-deep: #4a2fc7;
+  --color-gold: #c9962e;
+  --color-gold-soft: #eddcb6;
+  --color-rose: #e24c6b;
+  --color-green: #1e9e6b;
+
+  --color-ink: #151321;
+  --color-slate: #6b6880;
+  --color-canvas: #faf9ff;
+  --color-card: #ffffff;
+  --color-hairline: #edeaf7;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #0f0a2e;
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-violet) 30%, transparent);
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
