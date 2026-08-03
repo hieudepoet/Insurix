@@ -24,9 +24,9 @@ The customer already holds an active policy (Flight Delay Shield or Heavy Rain C
 
 ## Capabilities and Constraints
 
-- This build is **explicitly non-functional**: no real backend calls, no wallet, no live data. Every screen is driven by static/mock data seeded to demonstrate exactly two scripted outcomes: a full-approval flow and a single-checkpoint-rejection flow.
+- This build is **explicitly non-functional**: no real backend calls, no wallet, no live data. Every screen is driven by static/mock data seeded to demonstrate scripted outcomes: full-approval flows and a single-checkpoint-rejection flow.
 - **Never show Sui, blockchain, wallet, gas, or chain-explorer language anywhere in this app.** The underlying trust mechanism is real (see backend `orchestrator.ts` / attestation agents / Move contracts), but this surface must translate it entirely into insurance-native vocabulary: "attestation," "checkpoint," "verified by," "stamp," never "on-chain," "transaction," "signed by wallet."
-- Two product types only, matching the real contract's supported types: **Flight Delay** (delay-minutes threshold) and **Heavy Rain** (rainfall-mm threshold). Do not invent additional product lines.
+- Three product types demonstrated: **Flight Delay** and **Heavy Rain** (delay-minutes / rainfall-mm thresholds, matching the real contract's supported types) plus **Health** (treatment-cost-vs-deductible, added at the user's request as "a very common case" — mock-only at this layer, not tied to a real Move contract product-type constant). New product lines are fine to add for this demo surface as long as they follow the same pattern: an owned `Policy`, a live-pickable `Claim` scenario, and a resolved history entry.
 - Three verification checkpoints, matching the real agent pipeline: **Identity**, **External Data** (the oracle that confirms the triggering event — flight status or weather station reading), **Fraud Check**. A claim settles only once all three pass; if any one fails, the claim is rejected with that checkpoint named as the reason.
 - This is a separate app from `frontend/` (the real Sui-connected client), free to run its own visual identity — it may draw on the same reference material as frontend without literally copying its palette.
 

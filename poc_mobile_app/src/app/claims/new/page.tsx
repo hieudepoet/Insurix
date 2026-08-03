@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { SCENARIO_SUCCESS, SCENARIO_FAILURE, formatUsd, type Claim } from "@/data/mock";
+import { SCENARIO_SUCCESS, SCENARIO_HEALTH, SCENARIO_FAILURE, formatUsd, findPolicy, type Claim } from "@/data/mock";
 import { PrimaryButton, GhostButton, GLASS } from "@/components/ui";
 
-const EVENTS = [SCENARIO_SUCCESS, SCENARIO_FAILURE];
+const EVENTS = [SCENARIO_SUCCESS, SCENARIO_HEALTH, SCENARIO_FAILURE];
 
 export default function NewClaimPage() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function NewClaimPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[9.5px] font-bold tracking-wide text-[var(--color-gold)] uppercase">
-                      {claim.product === "flight-delay" ? "Flight Delay Shield" : "Heavy Rain Cover"}
+                      {findPolicy(claim.policyId)?.name}
                     </span>
                     <span
                       className="text-[9px] font-bold px-2 h-5 rounded-full inline-flex items-center"

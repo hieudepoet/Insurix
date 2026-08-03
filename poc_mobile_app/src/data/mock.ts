@@ -3,7 +3,7 @@
 // (backend/src/agents/external-data.ts, fraud-check.ts): flight delay > 120min,
 // rainfall > 50mm, fraud check fails on a duplicate claim within a 24h window.
 
-export type ProductType = "flight-delay" | "heavy-rain";
+export type ProductType = "flight-delay" | "heavy-rain" | "health";
 
 export type CheckpointId = "identity" | "externalData" | "fraudCheck";
 
@@ -57,7 +57,7 @@ const CHECKPOINT_NARRATIVE: Record<CheckpointId, string> = {
   identity:
     "Every Insurix policyholder verifies their identity once, at onboarding. This checkpoint doesn't re-run that process — it confirms this claim's signer matches that original attestation and hasn't been revoked, so a claim can only ever be filed by the policyholder it names.",
   externalData:
-    "This is the checkpoint that keeps the claim honest. It queries a data source neither the policyholder nor Insurix controls — aviation records or a weather station reading — and compares it against your policy's trigger threshold. Self-reported numbers are never used; if the source doesn't independently confirm the event, this checkpoint fails regardless of what the claim form says.",
+    "This is the checkpoint that keeps the claim honest. It queries a data source neither the policyholder nor Insurix controls — aviation records, a weather station reading, or a hospital's billing system, depending on your policy — and compares it against your policy's trigger threshold. Self-reported numbers are never used; if the source doesn't independently confirm the event, this checkpoint fails regardless of what the claim form says.",
   fraudCheck:
     "A rules engine checks this claim against recent activity on the same policy — duplicate submissions, blocklisted accounts, and known abuse patterns — before any funds move. It's the last gate before settlement, and the one most likely to catch a claim that looks legitimate on paper but isn't.",
 };
@@ -141,6 +141,7 @@ export interface Bill {
 export const BILLS: Bill[] = [
   { id: "bill-1", policyName: "Flight Delay Shield", amountUsd: 14, dueDate: "Aug 15" },
   { id: "bill-2", policyName: "Heavy Rain Cover", amountUsd: 9, dueDate: "Aug 22" },
+  { id: "bill-3", policyName: "Health Shield", amountUsd: 12, dueDate: "Aug 18" },
 ];
 
 export const POLICIES: Policy[] = [
@@ -163,6 +164,16 @@ export const POLICIES: Policy[] = [
     payoutUsd: 180,
     active: true,
     meta: "Covers your registered trip location",
+  },
+  {
+    id: "pol-health",
+    product: "health",
+    name: "Health Shield",
+    coverageLabel: "Treatment reimbursement · ≥ $50 deductible",
+    policyNumber: "HLS-5510-VN",
+    payoutUsd: 150,
+    active: true,
+    meta: "Covers hospital & outpatient treatment",
   },
 ];
 
@@ -237,6 +248,27 @@ export const SCENARIO_FAILURE: Claim = {
     { label: "Location", value: "Da Nang, VN" },
     { label: "Trip window", value: "Aug 1 – Aug 4" },
     { label: "Rainfall recorded", value: "62 mm (threshold 50 mm)" },
+  ],
+};
+
+// A health claim ready to be filed live in the demo — the most common
+// real-world case (an outpatient visit above the policy's deductible). All
+// three checkpoints pass → instant settlement, same mechanism as flight
+// delay and heavy rain, proving the attestation pipeline is product-agnostic.
+export const SCENARIO_HEALTH: Claim = {
+  id: "CLM-71061",
+  policyId: "pol-health",
+  product: "health",
+  title: "Outpatient visit · Cho Ray Hospital",
+  subtitle: "Treatment cost $85, deductible $50",
+  amountUsd: 150,
+  status: "pending",
+  createdAt: new Date().toISOString(),
+  checkpoints: baseCheckpoints(),
+  eventSummary: [
+    { label: "Provider", value: "Cho Ray Hospital, HCMC" },
+    { label: "Visit date", value: "Aug 2, 2026" },
+    { label: "Treatment cost", value: "$85 (deductible $50)" },
   ],
 };
 
@@ -341,16 +373,69 @@ export const HISTORY_REJECTED: Claim = {
   ],
 };
 
-export const CLAIM_HISTORY: Claim[] = [HISTORY_SETTLED, HISTORY_REJECTED];
+export const HISTORY_HEALTH_SETTLED: Claim = {
+  id: "CLM-70932",
+  policyId: "pol-health",
+  product: "health",
+  title: "Outpatient visit · Vinmec International",
+  subtitle: "Treatment cost $63, deductible $50",
+  amountUsd: 150,
+  status: "settled",
+  createdAt: "2026-07-25T10:30:00.000Z",
+  settledAt: "2026-07-25T10:31:02.000Z",
+  checkpoints: [
+    {
+      id: "identity",
+      title: "Identity",
+      description: "Confirms the claim belongs to the verified policyholder",
+      narrative: CHECKPOINT_NARRATIVE.identity,
+      state: "verified",
+      attestationId: "att_id_7c3e19",
+      verifiedAt: "2026-07-25T10:30:19.000Z",
+      detail: "Policyholder verified against onboarding record",
+    },
+    {
+      id: "externalData",
+      title: "External Data",
+      description: "Confirms the triggering event against an independent data source",
+      narrative: CHECKPOINT_NARRATIVE.externalData,
+      state: "verified",
+      attestationId: "att_ext_2fa8c1",
+      verifiedAt: "2026-07-25T10:30:41.000Z",
+      detail: "Hospital billing record: $63 treatment cost (deductible $50)",
+    },
+    {
+      id: "fraudCheck",
+      title: "Fraud Check",
+      description: "Screens the claim for duplicate or suspicious patterns",
+      narrative: CHECKPOINT_NARRATIVE.fraudCheck,
+      state: "verified",
+      attestationId: "att_frd_88b21e",
+      verifiedAt: "2026-07-25T10:31:02.000Z",
+      detail: "Rule score 100/100 · no duplicate window",
+    },
+  ],
+  eventSummary: [
+    { label: "Provider", value: "Vinmec International, Hanoi" },
+    { label: "Treatment cost", value: "$63 (deductible $50)" },
+  ],
+};
+
+export const CLAIM_HISTORY: Claim[] = [HISTORY_SETTLED, HISTORY_HEALTH_SETTLED, HISTORY_REJECTED];
 
 export function findPolicy(id: string): Policy | undefined {
   return POLICIES.find((p) => p.id === id);
 }
 
 export function findAnyClaim(id: string): Claim | undefined {
-  return [SCENARIO_SUCCESS, SCENARIO_FAILURE, HISTORY_SETTLED, HISTORY_REJECTED].find(
-    (c) => c.id === id,
-  );
+  return [
+    SCENARIO_SUCCESS,
+    SCENARIO_FAILURE,
+    SCENARIO_HEALTH,
+    HISTORY_SETTLED,
+    HISTORY_REJECTED,
+    HISTORY_HEALTH_SETTLED,
+  ].find((c) => c.id === id);
 }
 
 export function formatUsd(amount: number): string {
